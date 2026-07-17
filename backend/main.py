@@ -56,7 +56,7 @@ def check_admin(request: Request):
 
 # ==================== RUTAS CONCURSANTES ====================
 
-@app.get("/api/concursantes", response_model=list[ConcursanteSchema])
+@app.get("/api/concursantes")
 def get_concursantes(db: Session = Depends(get_db)):
     """Obtener todos los concursantes"""
     return db.query(Concursante).all()
@@ -104,7 +104,7 @@ def upload_concursante_photo(concursante_id: int, file: UploadFile = File(...), 
     db.refresh(db_concursante)
     return {"message": "Foto subida", "photo_url": db_concursante.photo_url}
 
-@app.get("/api/concursantes/{concursante_id}", response_model=ConcursanteSchema)
+@app.get("/api/concursantes/{concursante_id}")
 def get_concursante(concursante_id: int, db: Session = Depends(get_db)):
     """Obtener detalles de un concursante"""
     db_concursante = db.query(Concursante).filter(
@@ -592,38 +592,23 @@ def get_ranking_categoria(categoria: str, db: Session = Depends(get_db)):
 
 @app.get("/api/records")
 def get_records(db: Session = Depends(get_db)):
-    """Obtener records por categoría (mejores levantamientos)"""
+    """Obtener el record absoluto (mejor total) entre todos los levantamientos"""
     levantamientos = db.query(Levantamiento).all()
-    records = {}
+    best = None
     for l in levantamientos:
-        cat = l.concursante.categoria_peso
-        total = l.sentadilla + l.press_banca + l.peso_muerto
-        if cat not in records:
-            records[cat] = {
-                "categoria": cat,
-                "sentadilla": l.sentadilla,
-                "press_banca": l.press_banca,
-                "peso_muerto": l.peso_muerto,
-                "total": total,
-                "ipf_score": l.ipf_score,
-                "concursante": l.concursante.nombre
+        total = (l.sentadilla or 0) + (l.press_banca or 0) + (l.peso_muerto or 0)
+        if best is None or total > best['total']:
+            best = {
+                'concursante': l.concursante.nombre,
+                'categoria_peso': l.concursante.categoria_peso,
+                'sentadilla': l.sentadilla,
+                'press_banca': l.press_banca,
+                'peso_muerto': l.peso_muerto,
+                'total': total,
+                'ipf_score': l.ipf_score,
+                'competicion_id': l.competicion_id
             }
-        else:
-            # comparar y actualizar
-            if l.sentadilla > records[cat]["sentadilla"]:
-                records[cat]["sentadilla"] = l.sentadilla
-            if l.press_banca > records[cat]["press_banca"]:
-                records[cat]["press_banca"] = l.press_banca
-            if l.peso_muerto > records[cat]["peso_muerto"]:
-                records[cat]["peso_muerto"] = l.peso_muerto
-            if total > records[cat]["total"]:
-                records[cat]["total"] = total
-                records[cat]["concursante"] = l.concursante.nombre
-            if l.ipf_score > records[cat]["ipf_score"]:
-                records[cat]["ipf_score"] = l.ipf_score
-
-    # devolver lista ordenada por categoría
-    return list(records.values())
+    return best or {}
 
 # ==================== RUTAS ESTADÍSTICAS ====================
 
