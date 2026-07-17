@@ -5,15 +5,32 @@ from typing import Optional, List
 class LevantamientoBase(BaseModel):
     concursante_id: int
     competicion_id: Optional[int] = None
-    sentadilla: float
-    press_banca: float
-    peso_muerto: float
+    # Intentos (pueden ser None si se falló el intento)
+    sentadilla_1: Optional[float] = None
+    sentadilla_2: Optional[float] = None
+    sentadilla_3: Optional[float] = None
+
+    press_banca_1: Optional[float] = None
+    press_banca_2: Optional[float] = None
+    press_banca_3: Optional[float] = None
+
+    peso_muerto_1: Optional[float] = None
+    peso_muerto_2: Optional[float] = None
+    peso_muerto_3: Optional[float] = None
+    # Compatibilidad: también permitimos enviar directamente el mejor levantamiento
+    sentadilla: Optional[float] = None
+    press_banca: Optional[float] = None
+    peso_muerto: Optional[float] = None
 
 class LevantamientoCreate(LevantamientoBase):
     pass
 
 class Levantamiento(LevantamientoBase):
     id: int
+    # Campos calculados
+    sentadilla: float
+    press_banca: float
+    peso_muerto: float
     ipf_score: float
     fecha_levantamiento: datetime
     

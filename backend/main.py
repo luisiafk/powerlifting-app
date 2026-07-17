@@ -154,7 +154,7 @@ def delete_concursante(concursante_id: int, db: Session = Depends(get_db), reque
 
 # ==================== RUTAS COMPETICIONES ====================
 
-@app.get("/api/competiciones", response_model=list[CompeticionSchema])
+@app.get("/api/competiciones")
 def get_competiciones(
     desde: int = Query(2024, ge=1900, description="Año mínimo para incluir competiciones"),
     db: Session = Depends(get_db)
@@ -230,6 +230,35 @@ def get_equipo_atletas(equipo_id: int, db: Session = Depends(get_db)):
     return db_equipo.miembros
 
 
+@app.get("/api/equipos/{equipo_id}/competiciones")
+def get_competiciones_equipo(equipo_id: int, db: Session = Depends(get_db)):
+    """Obtener competiciones en las que participó algún miembro del equipo"""
+    db_equipo = db.query(Equipo).filter(Equipo.id == equipo_id).first()
+    if not db_equipo:
+        raise HTTPException(status_code=404, detail="Equipo no encontrado")
+
+    miembro_ids = [m.id for m in db_equipo.miembros]
+    # Buscar levantamientos de esos miembros y agrupar competiciones
+    compet_ids = db.query(Levantamiento.competicion_id).filter(
+        Levantamiento.concursante_id.in_(miembro_ids),
+        Levantamiento.competicion_id.isnot(None)
+    ).distinct().all()
+
+    comp_ids = [c[0] for c in compet_ids if c[0] is not None]
+    competiciones = db.query(Competicion).filter(Competicion.id.in_(comp_ids)).all() if comp_ids else []
+
+    result = [
+        {
+            'id': c.id,
+            'nombre': c.nombre,
+            'fecha': c.fecha.isoformat() if c.fecha else None,
+            'ubicacion': c.ubicacion,
+            'descripcion': c.descripcion
+        } for c in competiciones
+    ]
+    return result
+
+
 @app.post("/api/equipos")
 def create_equipo(equipo: dict, db: Session = Depends(get_db), request: Request = None):
     """Crear un equipo (admin only)."""
@@ -249,7 +278,7 @@ def create_equipo(equipo: dict, db: Session = Depends(get_db), request: Request 
     db.refresh(new_equipo)
     return {"id": new_equipo.id, "nombre": new_equipo.nombre, "descripcion": new_equipo.descripcion}
 
-@app.get("/api/competiciones/{competicion_id}", response_model=CompeticionSchema)
+@app.get("/api/competiciones/{competicion_id}")
 def get_competicion(competicion_id: int, db: Session = Depends(get_db)):
     """Obtener detalles de una competición"""
     db_competicion = db.query(Competicion).filter(
@@ -277,8 +306,17 @@ def get_competicion(competicion_id: int, db: Session = Depends(get_db)):
 
         atletas[atleta_id]["levantamientos"].append({
             "id": l.id,
+            "sentadilla_1": l.sentadilla_1,
+            "sentadilla_2": l.sentadilla_2,
+            "sentadilla_3": l.sentadilla_3,
             "sentadilla": l.sentadilla,
+            "press_banca_1": l.press_banca_1,
+            "press_banca_2": l.press_banca_2,
+            "press_banca_3": l.press_banca_3,
             "press_banca": l.press_banca,
+            "peso_muerto_1": l.peso_muerto_1,
+            "peso_muerto_2": l.peso_muerto_2,
+            "peso_muerto_3": l.peso_muerto_3,
             "peso_muerto": l.peso_muerto,
             "total": total,
             "ipf_score": l.ipf_score,
@@ -294,10 +332,20 @@ def get_competicion(competicion_id: int, db: Session = Depends(get_db)):
                 "nombre": l.concursante.nombre,
                 "sexo": l.concursante.sexo,
                 "categoria_peso": l.concursante.categoria_peso,
-                "photo_url": l.concursante.photo_url
+                "photo_url": l.concursante.photo_url,
+                "team": l.concursante.team.nombre if l.concursante.team else None
             },
+            "sentadilla_1": l.sentadilla_1,
+            "sentadilla_2": l.sentadilla_2,
+            "sentadilla_3": l.sentadilla_3,
             "sentadilla": l.sentadilla,
+            "press_banca_1": l.press_banca_1,
+            "press_banca_2": l.press_banca_2,
+            "press_banca_3": l.press_banca_3,
             "press_banca": l.press_banca,
+            "peso_muerto_1": l.peso_muerto_1,
+            "peso_muerto_2": l.peso_muerto_2,
+            "peso_muerto_3": l.peso_muerto_3,
             "peso_muerto": l.peso_muerto,
             "total": total,
             "ipf_score": l.ipf_score,
@@ -358,22 +406,131 @@ def create_levantamiento(levantamiento: LevantamientoCreate, db: Session = Depen
         if not db_competicion:
             raise HTTPException(status_code=404, detail="Competición no encontrada")
     
-    # Calcular IPF
-    total = levantamiento.sentadilla + levantamiento.press_banca + levantamiento.peso_muerto
+    # Determinar el mejor intento válido por movimiento (ignorando None)
+    def best_valid(*attempts):
+        vals = [a for a in attempts if a is not None]
+        return max(vals) if vals else 0.0
+
+    # Compatibilidad: si el cliente envió directamente `sentadilla`, usarlo
+    if getattr(levantamiento, 'sentadilla', None) is not None:
+        sentadilla_best = levantamiento.sentadilla
+        s1, s2, s3 = levantamiento.sentadilla, None, None
+    else:
+        sentadilla_best = best_valid(levantamiento.sentadilla_1, levantamiento.sentadilla_2, levantamiento.sentadilla_3)
+        s1, s2, s3 = levantamiento.sentadilla_1, levantamiento.sentadilla_2, levantamiento.sentadilla_3
+
+    if getattr(levantamiento, 'press_banca', None) is not None:
+        press_banca_best = levantamiento.press_banca
+        pb1, pb2, pb3 = levantamiento.press_banca, None, None
+    else:
+        press_banca_best = best_valid(levantamiento.press_banca_1, levantamiento.press_banca_2, levantamiento.press_banca_3)
+        pb1, pb2, pb3 = levantamiento.press_banca_1, levantamiento.press_banca_2, levantamiento.press_banca_3
+
+    if getattr(levantamiento, 'peso_muerto', None) is not None:
+        peso_muerto_best = levantamiento.peso_muerto
+        pm1, pm2, pm3 = levantamiento.peso_muerto, None, None
+    else:
+        peso_muerto_best = best_valid(levantamiento.peso_muerto_1, levantamiento.peso_muerto_2, levantamiento.peso_muerto_3)
+        pm1, pm2, pm3 = levantamiento.peso_muerto_1, levantamiento.peso_muerto_2, levantamiento.peso_muerto_3
+
+    total = sentadilla_best + press_banca_best + peso_muerto_best
     ipf_score = calculate_ipf_points(
-        total, 
-        db_concursante.categoria_peso, 
+        total,
+        db_concursante.categoria_peso,
         db_concursante.sexo
     )
-    
-    new_levantamiento = Levantamiento(
-        **levantamiento.dict(),
-        ipf_score=ipf_score
-    )
+
+    payload = levantamiento.dict()
+    # Sobrescribir/asegurar intentos y mejores
+    payload.update({
+        'sentadilla_1': s1,
+        'sentadilla_2': s2,
+        'sentadilla_3': s3,
+        'press_banca_1': pb1,
+        'press_banca_2': pb2,
+        'press_banca_3': pb3,
+        'peso_muerto_1': pm1,
+        'peso_muerto_2': pm2,
+        'peso_muerto_3': pm3,
+        'sentadilla': sentadilla_best,
+        'press_banca': press_banca_best,
+        'peso_muerto': peso_muerto_best,
+        'ipf_score': ipf_score
+    })
+
+    new_levantamiento = Levantamiento(**payload)
     db.add(new_levantamiento)
     db.commit()
     db.refresh(new_levantamiento)
     return new_levantamiento
+
+@app.put("/api/levantamientos/{levantamiento_id}", response_model=LevantamientoSchema)
+def update_levantamiento(levantamiento_id: int, levantamiento: LevantamientoCreate, db: Session = Depends(get_db), request: Request = None):
+    """Actualizar un levantamiento"""
+    if ADMIN_KEY:
+        check_admin(request)
+    
+    db_levantamiento = db.query(Levantamiento).filter(
+        Levantamiento.id == levantamiento_id
+    ).first()
+    if not db_levantamiento:
+        raise HTTPException(status_code=404, detail="Levantamiento no encontrado")
+    
+    # Verificar que exista el concursante (actualización)
+    db_concursante = db.query(Concursante).filter(
+        Concursante.id == levantamiento.concursante_id
+    ).first()
+    if not db_concursante:
+        raise HTTPException(status_code=404, detail="Concursante no encontrado")
+
+    # Recalcular mejor intento y IPF
+    def best_valid(*attempts):
+        vals = [a for a in attempts if a is not None]
+        return max(vals) if vals else 0.0
+
+    sentadilla_best = best_valid(levantamiento.sentadilla_1, levantamiento.sentadilla_2, levantamiento.sentadilla_3, levantamiento.sentadilla)
+    press_banca_best = best_valid(levantamiento.press_banca_1, levantamiento.press_banca_2, levantamiento.press_banca_3, levantamiento.press_banca)
+    peso_muerto_best = best_valid(levantamiento.peso_muerto_1, levantamiento.peso_muerto_2, levantamiento.peso_muerto_3, levantamiento.peso_muerto)
+
+    total = sentadilla_best + press_banca_best + peso_muerto_best
+    ipf_score = calculate_ipf_points(total, db_concursante.categoria_peso, db_concursante.sexo)
+
+    # Actualizar campos
+    db_levantamiento.concursante_id = levantamiento.concursante_id
+    db_levantamiento.sentadilla_1 = levantamiento.sentadilla_1
+    db_levantamiento.sentadilla_2 = levantamiento.sentadilla_2
+    db_levantamiento.sentadilla_3 = levantamiento.sentadilla_3
+    db_levantamiento.press_banca_1 = levantamiento.press_banca_1
+    db_levantamiento.press_banca_2 = levantamiento.press_banca_2
+    db_levantamiento.press_banca_3 = levantamiento.press_banca_3
+    db_levantamiento.peso_muerto_1 = levantamiento.peso_muerto_1
+    db_levantamiento.peso_muerto_2 = levantamiento.peso_muerto_2
+    db_levantamiento.peso_muerto_3 = levantamiento.peso_muerto_3
+    db_levantamiento.sentadilla = sentadilla_best
+    db_levantamiento.press_banca = press_banca_best
+    db_levantamiento.peso_muerto = peso_muerto_best
+    db_levantamiento.ipf_score = ipf_score
+
+    db.add(db_levantamiento)
+    db.commit()
+    db.refresh(db_levantamiento)
+    return db_levantamiento
+
+@app.delete("/api/levantamientos/{levantamiento_id}")
+def delete_levantamiento(levantamiento_id: int, db: Session = Depends(get_db), request: Request = None):
+    """Eliminar un levantamiento"""
+    if ADMIN_KEY:
+        check_admin(request)
+    
+    db_levantamiento = db.query(Levantamiento).filter(
+        Levantamiento.id == levantamiento_id
+    ).first()
+    if not db_levantamiento:
+        raise HTTPException(status_code=404, detail="Levantamiento no encontrado")
+    
+    db.delete(db_levantamiento)
+    db.commit()
+    return {"message": "Levantamiento eliminado"}
 
 @app.get("/api/levantamientos/concursante/{concursante_id}", response_model=list[LevantamientoSchema])
 def get_levantamientos_concursante(concursante_id: int, db: Session = Depends(get_db)):

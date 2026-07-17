@@ -65,10 +65,23 @@ class Levantamiento(Base):
     concursante_id = Column(Integer, ForeignKey("concursantes.id"))
     competicion_id = Column(Integer, ForeignKey("competiciones.id"))
     
-    # Levantamientos del powerlifting
-    sentadilla = Column(Float)  # en kg
-    press_banca = Column(Float)  # en kg
-    peso_muerto = Column(Float)  # en kg
+    # Intentos (hasta 3) por movimiento
+    sentadilla_1 = Column(Float, nullable=True)
+    sentadilla_2 = Column(Float, nullable=True)
+    sentadilla_3 = Column(Float, nullable=True)
+
+    press_banca_1 = Column(Float, nullable=True)
+    press_banca_2 = Column(Float, nullable=True)
+    press_banca_3 = Column(Float, nullable=True)
+
+    peso_muerto_1 = Column(Float, nullable=True)
+    peso_muerto_2 = Column(Float, nullable=True)
+    peso_muerto_3 = Column(Float, nullable=True)
+
+    # Mejores levantamientos por movimiento (calculados)
+    sentadilla = Column(Float, default=0.0)  # en kg
+    press_banca = Column(Float, default=0.0)  # en kg
+    peso_muerto = Column(Float, default=0.0)  # en kg
     
     # Score IPF (se calcula)
     ipf_score = Column(Float, default=0)

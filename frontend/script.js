@@ -413,8 +413,8 @@ async function loadCompetitions() {
         if (summary) {
             const years = [...new Set(comps
                 .map(c => c.fecha ? new Date(c.fecha).getFullYear() : null)
-                .filter(Boolean))].sort((a, b) => b - a);
-            const latest = comps[0]?.fecha ? new Date(comps[0].fecha).toLocaleDateString() : 'Sin registros';
+                )];
+                const latest = comps[0]?.fecha ? new Date(comps[0].fecha).toLocaleDateString() : 'Sin registros';
             summary.innerHTML = `
                 <div class="history-pill">
                     <span>Total desde 2024</span>
@@ -676,7 +676,7 @@ async function loadCompetitionDetail(compId) {
                     </div>
                     <div class="competition-metrics">
                         <div><strong>${competition.total_atletas}</strong><span>Atletas</span></div>
-                        <div><strong>${competition.mejor_ipf.toFixed(2)}</strong><span>Mejor IPF</span></div>
+                        <div><strong>${(competition.mejor_ipf || 0).toFixed(2)}</strong><span>Mejor IPF</span></div>
                     </div>
                 </div>
 
