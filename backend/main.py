@@ -348,7 +348,6 @@ def get_competicion(competicion_id: int, db: Session = Depends(get_db)):
         "nombre": db_competicion.nombre,
         "fecha": db_competicion.fecha.isoformat() if db_competicion.fecha else None,
         "ubicacion": db_competicion.ubicacion,
-        "descripcion": db_competicion.descripcion,
         "levantamientos": levantamientos,
         "atletas": atletas_ordenados,
         "mejor_ipf": mejor_ipf,
@@ -379,33 +378,20 @@ def create_levantamiento(levantamiento: LevantamientoCreate, db: Session = Depen
         db_competicion = db.query(Competicion).filter(
             Competicion.id == levantamiento.competicion_id
         ).first()
-        if not db_competicion:
-            raise HTTPException(status_code=404, detail="Competición no encontrada")
-
+        
 
     # Compatibilidad: si el cliente envió directamente `sentadilla`, usarlo
     if getattr(levantamiento, 'sentadilla', None) is not None:
         sentadilla_best = levantamiento.sentadilla
-        s1, s2, s3 = levantamiento.sentadilla, None, None
-    else:
-        sentadilla_best = best_valid(levantamiento.sentadilla_1, levantamiento.sentadilla_2, levantamiento.sentadilla_3)
-        s1, s2, s3 = levantamiento.sentadilla_1, levantamiento.sentadilla_2, levantamiento.sentadilla_3
-
+    
     if getattr(levantamiento, 'press_banca', None) is not None:
         press_banca_best = levantamiento.press_banca
-        pb1, pb2, pb3 = levantamiento.press_banca, None, None
-    else:
-        press_banca_best = best_valid(levantamiento.press_banca_1, levantamiento.press_banca_2, levantamiento.press_banca_3)
-        pb1, pb2, pb3 = levantamiento.press_banca_1, levantamiento.press_banca_2, levantamiento.press_banca_3
-
+        
     if getattr(levantamiento, 'peso_muerto', None) is not None:
         peso_muerto_best = levantamiento.peso_muerto
-        pm1, pm2, pm3 = levantamiento.peso_muerto, None, None
-    else:
-        peso_muerto_best = best_valid(levantamiento.peso_muerto_1, levantamiento.peso_muerto_2, levantamiento.peso_muerto_3)
-        pm1, pm2, pm3 = levantamiento.peso_muerto_1, levantamiento.peso_muerto_2, levantamiento.peso_muerto_3
-
+        
     total = sentadilla_best + press_banca_best + peso_muerto_best
+
     ipf_score = calculate_ipf_points(
         total,
         db_concursante.categoria_peso,
@@ -415,15 +401,6 @@ def create_levantamiento(levantamiento: LevantamientoCreate, db: Session = Depen
     payload = levantamiento.dict()
     # Sobrescribir/asegurar intentos y mejores
     payload.update({
-        'sentadilla_1': s1,
-        'sentadilla_2': s2,
-        'sentadilla_3': s3,
-        'press_banca_1': pb1,
-        'press_banca_2': pb2,
-        'press_banca_3': pb3,
-        'peso_muerto_1': pm1,
-        'peso_muerto_2': pm2,
-        'peso_muerto_3': pm3,
         'sentadilla': sentadilla_best,
         'press_banca': press_banca_best,
         'peso_muerto': peso_muerto_best,
@@ -469,15 +446,6 @@ def update_levantamiento(levantamiento_id: int, levantamiento: LevantamientoCrea
 
     # Actualizar campos
     db_levantamiento.concursante_id = levantamiento.concursante_id
-    db_levantamiento.sentadilla_1 = levantamiento.sentadilla_1
-    db_levantamiento.sentadilla_2 = levantamiento.sentadilla_2
-    db_levantamiento.sentadilla_3 = levantamiento.sentadilla_3
-    db_levantamiento.press_banca_1 = levantamiento.press_banca_1
-    db_levantamiento.press_banca_2 = levantamiento.press_banca_2
-    db_levantamiento.press_banca_3 = levantamiento.press_banca_3
-    db_levantamiento.peso_muerto_1 = levantamiento.peso_muerto_1
-    db_levantamiento.peso_muerto_2 = levantamiento.peso_muerto_2
-    db_levantamiento.peso_muerto_3 = levantamiento.peso_muerto_3
     db_levantamiento.sentadilla = sentadilla_best
     db_levantamiento.press_banca = press_banca_best
     db_levantamiento.peso_muerto = peso_muerto_best
