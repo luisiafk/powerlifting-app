@@ -14,15 +14,13 @@ class Concursante(Base):
     sexo = Column(String)  # M/F
     categoria_peso = Column(String)  # ej: 59kg, 66kg, 74kg, etc
     club = Column(String)
-    ciudad = Column(String)
     team_id = Column(Integer, ForeignKey("equipos.id"), nullable=True)
-    ano_inicio = Column(Integer)
     fecha_registro = Column(DateTime, default=datetime.utcnow)
     photo_filename = Column(String, nullable=True)
     
     # Relación con levantamientos
     levantamientos = relationship("Levantamiento", back_populates="concursante", cascade="all, delete-orphan")
-    team = relationship("Equipo", back_populates="miembros")
+    club = relationship("Club", back_populates="miembros")
     
     @hybrid_property
     def photo_url(self):
@@ -43,19 +41,16 @@ class Competicion(Base):
     nombre = Column(String, index=True)
     fecha = Column(DateTime)
     ubicacion = Column(String)
-    descripcion = Column(String)
     
     # Relación con levantamientos
     levantamientos = relationship("Levantamiento", back_populates="competicion", cascade="all, delete-orphan")
 
 
-class Equipo(Base):
-    __tablename__ = "equipos"
+class Club(Base):
+    __tablename__ = "clubs"
 
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, unique=True, index=True)
-    descripcion = Column(String, nullable=True)
-
     miembros = relationship("Concursante", back_populates="team")
 
 class Levantamiento(Base):
@@ -65,19 +60,6 @@ class Levantamiento(Base):
     concursante_id = Column(Integer, ForeignKey("concursantes.id"))
     competicion_id = Column(Integer, ForeignKey("competiciones.id"))
     
-    # Intentos (hasta 3) por movimiento
-    sentadilla_1 = Column(Float, nullable=True)
-    sentadilla_2 = Column(Float, nullable=True)
-    sentadilla_3 = Column(Float, nullable=True)
-
-    press_banca_1 = Column(Float, nullable=True)
-    press_banca_2 = Column(Float, nullable=True)
-    press_banca_3 = Column(Float, nullable=True)
-
-    peso_muerto_1 = Column(Float, nullable=True)
-    peso_muerto_2 = Column(Float, nullable=True)
-    peso_muerto_3 = Column(Float, nullable=True)
-
     # Mejores levantamientos por movimiento (calculados)
     sentadilla = Column(Float, default=0.0)  # en kg
     press_banca = Column(Float, default=0.0)  # en kg
