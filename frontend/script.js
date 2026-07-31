@@ -1,7 +1,7 @@
 // Leer parámetros de URL para backend y admin key
 const urlParams = new URLSearchParams(window.location.search);
-const BACKEND_URL = "https://powerlifting-app-7xws.onrender.com"
-const API_URL = `${BACKEND_URL}/api`;
+const BACKEND_URL = "https://powerlifting-app-7xws.onrender.com";
+const API_URL = "https://powerlifting-app-7xws.onrender.com";
 const ADMIN_KEY = urlParams.get('admin_key') || null;
 
 // Estado global
