@@ -7,7 +7,7 @@ import os
 import shutil
 
 from database import engine, Base, get_db
-from models import Concursante, Competicion, Levantamiento, Equipo
+from models import Concursante, Competicion, Levantamiento, Club
 from schemas import (
     Concursante as ConcursanteSchema,
     ConcursanteCreate,
