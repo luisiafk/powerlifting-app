@@ -306,17 +306,8 @@ def get_competicion(competicion_id: int, db: Session = Depends(get_db)):
 
         atletas[atleta_id]["levantamientos"].append({
             "id": l.id,
-            "sentadilla_1": l.sentadilla_1,
-            "sentadilla_2": l.sentadilla_2,
-            "sentadilla_3": l.sentadilla_3,
             "sentadilla": l.sentadilla,
-            "press_banca_1": l.press_banca_1,
-            "press_banca_2": l.press_banca_2,
-            "press_banca_3": l.press_banca_3,
             "press_banca": l.press_banca,
-            "peso_muerto_1": l.peso_muerto_1,
-            "peso_muerto_2": l.peso_muerto_2,
-            "peso_muerto_3": l.peso_muerto_3,
             "peso_muerto": l.peso_muerto,
             "total": total,
             "ipf_score": l.ipf_score,
@@ -335,28 +326,14 @@ def get_competicion(competicion_id: int, db: Session = Depends(get_db)):
                 "photo_url": l.concursante.photo_url,
                 "team": l.concursante.team.nombre if l.concursante.team else None
             },
-            "sentadilla_1": l.sentadilla_1,
-            "sentadilla_2": l.sentadilla_2,
-            "sentadilla_3": l.sentadilla_3,
+            
             "sentadilla": l.sentadilla,
-            "press_banca_1": l.press_banca_1,
-            "press_banca_2": l.press_banca_2,
-            "press_banca_3": l.press_banca_3,
             "press_banca": l.press_banca,
-            "peso_muerto_1": l.peso_muerto_1,
-            "peso_muerto_2": l.peso_muerto_2,
-            "peso_muerto_3": l.peso_muerto_3,
             "peso_muerto": l.peso_muerto,
             "total": total,
             "ipf_score": l.ipf_score,
             "fecha_levantamiento": l.fecha_levantamiento.isoformat()
         })
-
-    top_levantamientos = sorted(
-        levantamientos,
-        key=lambda levantamiento: (levantamiento["ipf_score"], levantamiento["total"]),
-        reverse=True
-    )[:5]
 
     atletas_ordenados = sorted(
         atletas.values(),
@@ -374,7 +351,6 @@ def get_competicion(competicion_id: int, db: Session = Depends(get_db)):
         "descripcion": db_competicion.descripcion,
         "levantamientos": levantamientos,
         "atletas": atletas_ordenados,
-        "top_levantamientos": top_levantamientos,
         "mejor_ipf": mejor_ipf,
         "total_atletas": len(atletas_ordenados)
     }
@@ -405,11 +381,7 @@ def create_levantamiento(levantamiento: LevantamientoCreate, db: Session = Depen
         ).first()
         if not db_competicion:
             raise HTTPException(status_code=404, detail="Competición no encontrada")
-    
-    # Determinar el mejor intento válido por movimiento (ignorando None)
-    def best_valid(*attempts):
-        vals = [a for a in attempts if a is not None]
-        return max(vals) if vals else 0.0
+
 
     # Compatibilidad: si el cliente envió directamente `sentadilla`, usarlo
     if getattr(levantamiento, 'sentadilla', None) is not None:
