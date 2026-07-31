@@ -1,6 +1,6 @@
 // Leer parámetros de URL para backend y admin key
 const urlParams = new URLSearchParams(window.location.search);
-const BACKEND_URL = (urlParams.get('backend_url') || urlParams.get('api_url') || (window.__BACKEND_URL__ || 'http://localhost:8000')).replace(/\/$/, '');
+const BACKEND_URL = "https://powerlifting-app-7xws.onrender.com"
 const API_URL = `${BACKEND_URL}/api`;
 const ADMIN_KEY = urlParams.get('admin_key') || null;
 
