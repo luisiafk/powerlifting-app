@@ -189,7 +189,7 @@ def create_competicion(competicion: CompeticionCreate, db: Session = Depends(get
 @app.get("/api/equipos", response_model=list[dict])
 def get_equipos(db: Session = Depends(get_db)):
     """Obtener todos los equipos"""
-    equipos = db.query(Equipo).all()
+    equipos = db.query(Club).all()
     result = []
     for e in equipos:
         result.append({
@@ -203,7 +203,7 @@ def get_equipos(db: Session = Depends(get_db)):
 
 @app.get("/api/equipos/{equipo_id}")
 def get_equipo(equipo_id: int, db: Session = Depends(get_db)):
-    db_equipo = db.query(Equipo).filter(Equipo.id == equipo_id).first()
+    db_equipo = db.query(Club).filter(Club.id == equipo_id).first()
     if not db_equipo:
         raise HTTPException(status_code=404, detail="Equipo no encontrado")
     return {
@@ -224,7 +224,7 @@ def get_equipo(equipo_id: int, db: Session = Depends(get_db)):
 
 @app.get("/api/equipos/{equipo_id}/atletas")
 def get_equipo_atletas(equipo_id: int, db: Session = Depends(get_db)):
-    db_equipo = db.query(Equipo).filter(Equipo.id == equipo_id).first()
+    db_equipo = db.query(Club).filter(Club.id == equipo_id).first()
     if not db_equipo:
         raise HTTPException(status_code=404, detail="Equipo no encontrado")
     return db_equipo.miembros
@@ -233,7 +233,7 @@ def get_equipo_atletas(equipo_id: int, db: Session = Depends(get_db)):
 @app.get("/api/equipos/{equipo_id}/competiciones")
 def get_competiciones_equipo(equipo_id: int, db: Session = Depends(get_db)):
     """Obtener competiciones en las que participó algún miembro del equipo"""
-    db_equipo = db.query(Equipo).filter(Equipo.id == equipo_id).first()
+    db_equipo = db.query(Club).filter(Club.id == equipo_id).first()
     if not db_equipo:
         raise HTTPException(status_code=404, detail="Equipo no encontrado")
 
@@ -269,10 +269,10 @@ def create_equipo(equipo: dict, db: Session = Depends(get_db), request: Request 
     descripcion = equipo.get("descripcion")
     if not nombre:
         raise HTTPException(status_code=400, detail="Nombre requerido")
-    existing = db.query(Equipo).filter(Equipo.nombre == nombre).first()
+    existing = db.query(Club).filter(Club.nombre == nombre).first()
     if existing:
         raise HTTPException(status_code=400, detail="Equipo ya existe")
-    new_equipo = Equipo(nombre=nombre, descripcion=descripcion)
+    new_equipo = Club(nombre=nombre, descripcion=descripcion)
     db.add(new_equipo)
     db.commit()
     db.refresh(new_equipo)
