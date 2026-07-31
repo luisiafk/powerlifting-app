@@ -14,13 +14,13 @@ class Concursante(Base):
     sexo = Column(String)  # M/F
     categoria_peso = Column(String)  # ej: 59kg, 66kg, 74kg, etc
     club = Column(String)
-    team_id = Column(Integer, ForeignKey("equipos.id"), nullable=True)
+    team_id = Column(Integer, ForeignKey("clubs.id"), nullable=True)
     fecha_registro = Column(DateTime, default=datetime.utcnow)
     photo_filename = Column(String, nullable=True)
     
     # Relación con levantamientos
     levantamientos = relationship("Levantamiento", back_populates="concursante", cascade="all, delete-orphan")
-    club = relationship("Club", back_populates="miembros")
+    club = relationship("Club", back_populates="concursantes")
     
     @hybrid_property
     def photo_url(self):
