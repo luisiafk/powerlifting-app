@@ -46,10 +46,11 @@ ADMIN_KEY = os.environ.get("ADMIN_KEY")
 def check_admin(request: Request):
     """Verifica si la petición incluye la clave administrativa por header o query param."""
     key = None
-    if "x-admin-key" in request.headers:
-        key = request.headers.get("x-admin-key")
-    elif request.query_params.get("admin_key"):
-        key = request.query_params.get("admin_key")
+    if request is not None:
+        if "x-admin-key" in request.headers:
+            key = request.headers.get("x-admin-key")
+        elif request.query_params.get("admin_key"):
+            key = request.query_params.get("admin_key")
 
     if not ADMIN_KEY or key != ADMIN_KEY:
         raise HTTPException(status_code=403, detail="Operación no autorizada")
@@ -64,17 +65,18 @@ def get_concursantes(db: Session = Depends(get_db)):
 @app.post("/api/concursantes", response_model=ConcursanteSchema)
 def create_concursante(concursante: ConcursanteCreate, db: Session = Depends(get_db), request: Request = None):
     """Crear un nuevo concursante"""
-    # Verificar que no exista
+    payload = concursante.model_dump() if hasattr(concursante, "model_dump") else concursante.dict()
+
     db_concursante = db.query(Concursante).filter(
-        Concursante.nombre == concursante.nombre
+        Concursante.nombre == payload.get("nombre")
     ).first()
     if db_concursante:
         raise HTTPException(status_code=400, detail="Concursante ya existe")
-    # Protección: solo admin puede crear concursantes si ADMIN_KEY está configurada
+
     if ADMIN_KEY:
         check_admin(request)
 
-    new_concursante = Concursante(**concursante.dict())
+    new_concursante = Concursante(**payload)
     db.add(new_concursante)
     db.commit()
     db.refresh(new_concursante)
@@ -177,7 +179,8 @@ def create_competicion(competicion: CompeticionCreate, db: Session = Depends(get
     if ADMIN_KEY:
         check_admin(request)
 
-    new_competicion = Competicion(**competicion.dict())
+    payload = competicion.model_dump() if hasattr(competicion, "model_dump") else competicion.dict()
+    new_competicion = Competicion(**payload)
     db.add(new_competicion)
     db.commit()
     db.refresh(new_competicion)
@@ -238,7 +241,6 @@ def get_competiciones_equipo(equipo_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Equipo no encontrado")
 
     miembro_ids = [m.id for m in db_equipo.miembros]
-    # Buscar levantamientos de esos miembros y agrupar competiciones
     compet_ids = db.query(Levantamiento.competicion_id).filter(
         Levantamiento.concursante_id.in_(miembro_ids),
         Levantamiento.competicion_id.isnot(None)
@@ -364,10 +366,9 @@ def get_levantamientos(db: Session = Depends(get_db)):
 @app.post("/api/levantamientos", response_model=LevantamientoSchema)
 def create_levantamiento(levantamiento: LevantamientoCreate, db: Session = Depends(get_db), request: Request = None):
     """Crear un nuevo levantamiento y calcular IPF"""
-    # Solo admin puede crear levantamientos si ADMIN_KEY está configurada
     if ADMIN_KEY:
         check_admin(request)
-    # Verificar que exista el concursante
+
     db_concursante = db.query(Concursante).filter(
         Concursante.id == levantamiento.concursante_id
     ).first()
@@ -378,33 +379,26 @@ def create_levantamiento(levantamiento: LevantamientoCreate, db: Session = Depen
         db_competicion = db.query(Competicion).filter(
             Competicion.id == levantamiento.competicion_id
         ).first()
-        
+        if not db_competicion:
+            raise HTTPException(status_code=404, detail="Competición no encontrada")
 
-    # Compatibilidad: si el cliente envió directamente `sentadilla`, usarlo
-    if getattr(levantamiento, 'sentadilla', None) is not None:
-        sentadilla_best = levantamiento.sentadilla
-    
-    if getattr(levantamiento, 'press_banca', None) is not None:
-        press_banca_best = levantamiento.press_banca
-        
-    if getattr(levantamiento, 'peso_muerto', None) is not None:
-        peso_muerto_best = levantamiento.peso_muerto
-        
+    sentadilla_best = float(getattr(levantamiento, "sentadilla", None) or 0.0)
+    press_banca_best = float(getattr(levantamiento, "press_banca", None) or 0.0)
+    peso_muerto_best = float(getattr(levantamiento, "peso_muerto", None) or 0.0)
+
     total = sentadilla_best + press_banca_best + peso_muerto_best
-
     ipf_score = calculate_ipf_points(
         total,
         db_concursante.categoria_peso,
         db_concursante.sexo
     )
 
-    payload = levantamiento.dict()
-    # Sobrescribir/asegurar intentos y mejores
+    payload = levantamiento.model_dump() if hasattr(levantamiento, "model_dump") else levantamiento.dict()
     payload.update({
-        'sentadilla': sentadilla_best,
-        'press_banca': press_banca_best,
-        'peso_muerto': peso_muerto_best,
-        'ipf_score': ipf_score
+        "sentadilla": sentadilla_best,
+        "press_banca": press_banca_best,
+        "peso_muerto": peso_muerto_best,
+        "ipf_score": ipf_score
     })
 
     new_levantamiento = Levantamiento(**payload)
@@ -413,39 +407,41 @@ def create_levantamiento(levantamiento: LevantamientoCreate, db: Session = Depen
     db.refresh(new_levantamiento)
     return new_levantamiento
 
+
 @app.put("/api/levantamientos/{levantamiento_id}", response_model=LevantamientoSchema)
 def update_levantamiento(levantamiento_id: int, levantamiento: LevantamientoCreate, db: Session = Depends(get_db), request: Request = None):
     """Actualizar un levantamiento"""
     if ADMIN_KEY:
         check_admin(request)
-    
+
     db_levantamiento = db.query(Levantamiento).filter(
         Levantamiento.id == levantamiento_id
     ).first()
     if not db_levantamiento:
         raise HTTPException(status_code=404, detail="Levantamiento no encontrado")
-    
-    # Verificar que exista el concursante (actualización)
+
     db_concursante = db.query(Concursante).filter(
         Concursante.id == levantamiento.concursante_id
     ).first()
     if not db_concursante:
         raise HTTPException(status_code=404, detail="Concursante no encontrado")
 
-    # Recalcular mejor intento y IPF
-    def best_valid(*attempts):
-        vals = [a for a in attempts if a is not None]
-        return max(vals) if vals else 0.0
+    if levantamiento.competicion_id is not None:
+        db_competicion = db.query(Competicion).filter(
+            Competicion.id == levantamiento.competicion_id
+        ).first()
+        if not db_competicion:
+            raise HTTPException(status_code=404, detail="Competición no encontrada")
 
-    sentadilla_best = best_valid(levantamiento.sentadilla_1, levantamiento.sentadilla_2, levantamiento.sentadilla_3, levantamiento.sentadilla)
-    press_banca_best = best_valid(levantamiento.press_banca_1, levantamiento.press_banca_2, levantamiento.press_banca_3, levantamiento.press_banca)
-    peso_muerto_best = best_valid(levantamiento.peso_muerto_1, levantamiento.peso_muerto_2, levantamiento.peso_muerto_3, levantamiento.peso_muerto)
+    sentadilla_best = float(getattr(levantamiento, "sentadilla", None) or 0.0)
+    press_banca_best = float(getattr(levantamiento, "press_banca", None) or 0.0)
+    peso_muerto_best = float(getattr(levantamiento, "peso_muerto", None) or 0.0)
 
     total = sentadilla_best + press_banca_best + peso_muerto_best
     ipf_score = calculate_ipf_points(total, db_concursante.categoria_peso, db_concursante.sexo)
 
-    # Actualizar campos
     db_levantamiento.concursante_id = levantamiento.concursante_id
+    db_levantamiento.competicion_id = levantamiento.competicion_id
     db_levantamiento.sentadilla = sentadilla_best
     db_levantamiento.press_banca = press_banca_best
     db_levantamiento.peso_muerto = peso_muerto_best

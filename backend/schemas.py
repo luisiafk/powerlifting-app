@@ -14,13 +14,12 @@ class LevantamientoCreate(LevantamientoBase):
 
 class Levantamiento(LevantamientoBase):
     id: int
-    # Campos calculados
     sentadilla: float
     press_banca: float
     peso_muerto: float
     ipf_score: float
     fecha_levantamiento: datetime
-    
+
     class Config:
         from_attributes = True
 
@@ -30,10 +29,10 @@ class ConcursanteBase(BaseModel):
     peso_corporal: float
     sexo: str
     categoria_peso: str
-    club: str
-    ciudad: str
+    club: Optional[str] = None
+    ciudad: Optional[str] = None
+    ano_inicio: Optional[int] = None
     team_id: Optional[int] = None
-    ano_inicio: int
 
 class ConcursanteCreate(ConcursanteBase):
     pass
@@ -44,7 +43,7 @@ class Concursante(ConcursanteBase):
     levantamientos: List[Levantamiento] = []
     photo_url: Optional[str] = None
     team: Optional[dict] = None
-    
+
     class Config:
         from_attributes = True
 
@@ -60,7 +59,7 @@ class CompeticionCreate(CompeticionBase):
 class Competicion(CompeticionBase):
     id: int
     levantamientos: List[Levantamiento] = []
-    
+
     class Config:
         from_attributes = True
 
