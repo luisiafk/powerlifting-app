@@ -149,23 +149,17 @@ function displayConcursantes() {
     
     allConcursantes.forEach(concursante => {
         const levantamientos = allLevantamientos.filter(l => l.concursante_id === concursante.id);
-        const mejorIPF = levantamientos.length > 0 
-            ? Math.max(...levantamientos.map(l => l.ipf_score))
-            : 0;
-        const photoSrc = concursante.photo_url ? (BACKEND_URL + concursante.photo_url) : '';
+        const mejorIPF = levantamientos.length > 0 ? Math.max(...levantamientos.map(l => l.ipf_score)) : 0;
+        const teamName = concursante.team?.nombre || concursante.club || 'N/A';
         
         const card = `
             <div id="concursante-card-${concursante.id}" class="concursante-card clickable-participations" onclick="viewCompetitionsByConcursante(${concursante.id})" title="Clic para ver participaciones">
                 <h3>${concursante.nombre}</h3>
-                ${photoSrc ? `<img src="${photoSrc}" alt="foto" style="width:80px;height:100px;object-fit:cover;border-radius:6px;margin-bottom:10px;">` : ''}
                 <div class="concursante-info">
-                    <p><strong>Edad:</strong> ${concursante.edad} años</p>
                     <p><strong>Peso:</strong> ${concursante.peso_corporal} kg</p>
                     <p><strong>Sexo:</strong> ${concursante.sexo === 'M' ? 'Masculino' : 'Femenino'}</p>
-                    <p><strong>Categoría:</strong> ${concursante.categoria_peso} kg</p>
-                    <p><strong>Club:</strong> ${concursante.club || 'N/A'}</p>
-                    <p><strong>Ciudad:</strong> ${concursante.ciudad || 'N/A'}</p>
-                    <p><strong>Desde:</strong> ${concursante.ano_inicio || 'N/A'}</p>
+                    <p><strong>Equipo:</strong> ${teamName}</p>
+                    <p><strong>Año nacimiento:</strong> ${concursante.ano_inicio || 'N/A'}</p>
                     <p><strong>Levantamientos:</strong> ${levantamientos.length}</p>
                     ${mejorIPF > 0 ? `<span class="concursante-badge">Mejor IPF: ${mejorIPF.toFixed(2)}</span>` : ''}
                 </div>
@@ -354,13 +348,10 @@ async function addConcursante(event) {
     
     const concursante = {
         nombre: document.getElementById('nombre').value,
-        edad: parseInt(document.getElementById('edad').value),
         peso_corporal: parseFloat(document.getElementById('peso_corporal').value),
         sexo: document.getElementById('sexo').value,
-        categoria_peso: document.getElementById('categoria_peso').value,
         club: document.getElementById('club').value || '',
-        ciudad: document.getElementById('ciudad').value || '',
-        ano_inicio: parseInt(document.getElementById('ano_inicio').value) || new Date().getFullYear()
+        ano_inicio: parseInt(document.getElementById('ano_inicio').value) || null
     };
     
     try {
@@ -379,22 +370,6 @@ async function addConcursante(event) {
         
         showToast('¡Concursante registrado exitosamente!', 'success');
         document.getElementById('form-concursante').reset();
-        const created = await response.json();
-        // Si se subió foto, enviarla
-        const photoInput = document.getElementById('photo');
-        if (photoInput && photoInput.files && photoInput.files.length > 0) {
-            const form = new FormData();
-            form.append('file', photoInput.files[0]);
-            try {
-                const photoHeaders = {};
-                if (ADMIN_KEY) photoHeaders['x-admin-key'] = ADMIN_KEY;
-                await fetch(`${API_URL}/concursantes/${created.id}/photo`, {
-                    method: 'POST',
-                    headers: photoHeaders,
-                    body: form
-                });
-            } catch (err) { console.error('Error subiendo foto', err); }
-        }
         await loadAllData();
     } catch (error) {
         console.error('Error:', error);

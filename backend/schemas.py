@@ -25,13 +25,12 @@ class Levantamiento(LevantamientoBase):
 
 class ConcursanteBase(BaseModel):
     nombre: str
-    edad: int
     peso_corporal: float
     sexo: str
-    categoria_peso: str
     club: Optional[str] = None
-    ciudad: Optional[str] = None
     ano_inicio: Optional[int] = None
+    edad: Optional[int] = None
+    categoria_peso: Optional[str] = None
     team_id: Optional[int] = None
 
 class ConcursanteCreate(ConcursanteBase):

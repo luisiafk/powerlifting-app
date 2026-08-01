@@ -55,6 +55,32 @@ def check_admin(request: Request):
     if not ADMIN_KEY or key != ADMIN_KEY:
         raise HTTPException(status_code=403, detail="Operación no autorizada")
 
+
+def calculate_categoria_peso(peso_corporal: float) -> str:
+    categories = [59, 66, 74, 83, 93, 105, 120]
+    for category in categories:
+        if peso_corporal <= category:
+            return str(category)
+    return "+120"
+
+
+def resolve_team_id(db: Session, team_name: str | None):
+    if not team_name:
+        return None
+
+    normalized = team_name.strip()
+    if not normalized:
+        return None
+
+    existing = db.query(Club).filter(Club.nombre.ilike(normalized)).first()
+    if existing:
+        return existing.id
+
+    new_team = Club(nombre=normalized)
+    db.add(new_team)
+    db.flush()
+    return new_team.id
+
 # ==================== RUTAS CONCURSANTES ====================
 
 @app.get("/api/concursantes")
@@ -67,14 +93,46 @@ def create_concursante(concursante: ConcursanteCreate, db: Session = Depends(get
     """Crear un nuevo concursante"""
     payload = concursante.model_dump() if hasattr(concursante, "model_dump") else concursante.dict()
 
+    nombre = (payload.get("nombre") or "").strip()
+    peso_corporal = float(payload.get("peso_corporal") or 0)
+    sexo = (payload.get("sexo") or "").strip()
+    team_name = (payload.get("club") or "").strip()
+    birth_year = payload.get("ano_inicio") or payload.get("ano_nacimiento")
+
+    if not nombre:
+        raise HTTPException(status_code=400, detail="Nombre requerido")
+    if peso_corporal <= 0:
+        raise HTTPException(status_code=400, detail="Peso corporal requerido")
+    if not sexo:
+        raise HTTPException(status_code=400, detail="Sexo requerido")
+
     db_concursante = db.query(Concursante).filter(
-        Concursante.nombre == payload.get("nombre")
+        Concursante.nombre == nombre
     ).first()
     if db_concursante:
         raise HTTPException(status_code=400, detail="Concursante ya existe")
 
     if ADMIN_KEY:
         check_admin(request)
+
+    team_id = resolve_team_id(db, team_name)
+    edad = None
+    if birth_year:
+        try:
+            edad = datetime.utcnow().year - int(birth_year)
+        except (TypeError, ValueError):
+            raise HTTPException(status_code=400, detail="Año de nacimiento inválido")
+
+    payload.update({
+        "nombre": nombre,
+        "peso_corporal": peso_corporal,
+        "sexo": sexo,
+        "categoria_peso": calculate_categoria_peso(peso_corporal),
+        "edad": edad if edad is not None else payload.get("edad") or 0,
+        "club": team_name or None,
+        "team_id": team_id,
+        "ano_inicio": int(birth_year) if birth_year is not None and str(birth_year).strip() != "" else None,
+    })
 
     new_concursante = Concursante(**payload)
     db.add(new_concursante)
@@ -131,9 +189,37 @@ def update_concursante(
     ).first()
     if not db_concursante:
         raise HTTPException(status_code=404, detail="Concursante no encontrado")
-    
-    for key, value in concursante.dict().items():
-        setattr(db_concursante, key, value)
+
+    payload = concursante.model_dump() if hasattr(concursante, "model_dump") else concursante.dict()
+    nombre = (payload.get("nombre") or "").strip()
+    peso_corporal = float(payload.get("peso_corporal") or 0)
+    sexo = (payload.get("sexo") or "").strip()
+    team_name = (payload.get("club") or "").strip()
+    birth_year = payload.get("ano_inicio") or payload.get("ano_nacimiento")
+
+    if not nombre:
+        raise HTTPException(status_code=400, detail="Nombre requerido")
+    if peso_corporal <= 0:
+        raise HTTPException(status_code=400, detail="Peso corporal requerido")
+    if not sexo:
+        raise HTTPException(status_code=400, detail="Sexo requerido")
+
+    team_id = resolve_team_id(db, team_name)
+    edad = None
+    if birth_year:
+        try:
+            edad = datetime.utcnow().year - int(birth_year)
+        except (TypeError, ValueError):
+            raise HTTPException(status_code=400, detail="Año de nacimiento inválido")
+
+    db_concursante.nombre = nombre
+    db_concursante.peso_corporal = peso_corporal
+    db_concursante.sexo = sexo
+    db_concursante.categoria_peso = calculate_categoria_peso(peso_corporal)
+    db_concursante.edad = edad if edad is not None else db_concursante.edad
+    db_concursante.club = team_name or None
+    db_concursante.team_id = team_id
+    db_concursante.ano_inicio = int(birth_year) if birth_year is not None and str(birth_year).strip() != "" else None
     
     db.commit()
     db.refresh(db_concursante)
@@ -299,9 +385,11 @@ def get_competicion(competicion_id: int, db: Session = Depends(get_db)):
             atletas[atleta_id] = {
                 "id": l.concursante.id,
                 "nombre": l.concursante.nombre,
+                "peso_corporal": l.concursante.peso_corporal,
                 "sexo": l.concursante.sexo,
                 "categoria_peso": l.concursante.categoria_peso,
                 "photo_url": l.concursante.photo_url,
+                "team": l.concursante.team.nombre if l.concursante.team else None,
                 "levantamientos": [],
                 "mejor_ipf": 0,
             }
@@ -323,6 +411,7 @@ def get_competicion(competicion_id: int, db: Session = Depends(get_db)):
             "concursante": {
                 "id": l.concursante.id,
                 "nombre": l.concursante.nombre,
+                "peso_corporal": l.concursante.peso_corporal,
                 "sexo": l.concursante.sexo,
                 "categoria_peso": l.concursante.categoria_peso,
                 "photo_url": l.concursante.photo_url,
@@ -352,6 +441,7 @@ def get_competicion(competicion_id: int, db: Session = Depends(get_db)):
         "ubicacion": db_competicion.ubicacion,
         "levantamientos": levantamientos,
         "atletas": atletas_ordenados,
+        "top_levantamientos": sorted(levantamientos, key=lambda item: item["ipf_score"], reverse=True),
         "mejor_ipf": mejor_ipf,
         "total_atletas": len(atletas_ordenados)
     }
