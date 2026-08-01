@@ -1,7 +1,7 @@
 // Leer parámetros de URL para backend y admin key
 const urlParams = new URLSearchParams(window.location.search);
 const BACKEND_URL = "https://powerlifting-app-7xws.onrender.com";
-const API_URL = "https://powerlifting-app-7xws.onrender.com";
+const API_URL = `${BACKEND_URL}/api`;
 const ADMIN_KEY = urlParams.get('admin_key') || null;
 
 // Estado global
@@ -382,7 +382,7 @@ async function addConcursante(event) {
             try {
                 const photoHeaders = {};
                 if (ADMIN_KEY) photoHeaders['x-admin-key'] = ADMIN_KEY;
-                await fetch(`${API_URL.replace('/api','')}/api/concursantes/${created.id}/photo`, {
+                await fetch(`${API_URL}/concursantes/${created.id}/photo`, {
                     method: 'POST',
                     headers: photoHeaders,
                     body: form
