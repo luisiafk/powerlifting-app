@@ -101,115 +101,10 @@
                 <h2>Historial de competencias</h2>
                 <p>Registro cronológico de todas las competencias celebradas desde 2024 hasta la fecha.</p>
             </div>
-            <div class="grid-two competition-tools">
-                <div class="form-container competition-form" data-admin-only>
-                    <h2>Registrar levantamiento en competencia</h2>
-                    <form id="form-levantamiento-competencia" onsubmit="addLevantamientoCompetencia(event)" data-admin-only>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Competencia *</label>
-                                <select id="levantamiento_competicion_id" required title="Selecciona la competencia"></select>
-                            </div>
-                            <div class="form-group">
-                                <label>Atleta *</label>
-                                <select id="levantamiento_concursante_id" required title="Selecciona el atleta"></select>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Sentadilla *</label>
-                                <input type="number" id="levantamiento_sentadilla" step="0.1" required placeholder="kg">
-                            </div>
-                            <div class="form-group">
-                                <label>Press banca *</label>
-                                <input type="number" id="levantamiento_press_banca" step="0.1" required placeholder="kg">
-                            </div>
-                            <div class="form-group">
-                                <label>Peso muerto *</label>
-                                <input type="number" id="levantamiento_peso_muerto" step="0.1" required placeholder="kg">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-submit soft">Guardar levantamiento</button>
-                    </form>
-                </div>
-            </div>
             <div id="competition-history-summary" class="history-summary"></div>
             <div id="competition-detail" class="competition-detail"></div>
             <div id="competitions-list" class="cards-grid"></div>
         </section>
-
-            <section id="agregar-competencia" class="tab-content" data-admin-only>
-                <div class="form-container" data-admin-only>
-                    <h2>Agregar competencia manualmente</h2>
-                    <form id="form-competicion" onsubmit="event.preventDefault()">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Nombre *</label>
-                                <input type="text" id="competicion_nombre" required placeholder="Nombre de la competencia">
-                            </div>
-                            <div class="form-group">
-                                <label>Fecha *</label>
-                                <input type="date" id="competicion_fecha" required title="Fecha de la competencia">
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Sede *</label>
-                                <input type="text" id="competicion_ubicacion" required placeholder="Sede de la competencia">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Descripción</label>
-                            <textarea id="competicion_descripcion" rows="4" placeholder="Detalles del evento"></textarea>
-                        </div>
-                    </form>
-
-                    <div id="competition-entries-section" class="competition-entries">
-                        <h3>Atleta con sus levantamientos</h3>
-                        <form id="form-competition-entry" onsubmit="addCompetitionEntry(event)" data-admin-only>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Atleta *</label>
-                                    <select id="entry_concursante_id" required title="Selecciona el atleta"></select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Sentadilla *</label>
-                                    <input type="number" id="entry_sentadilla" step="0.1" required placeholder="kg">
-                                </div>
-                                <div class="form-group">
-                                    <label>Press banca *</label>
-                                    <input type="number" id="entry_press_banca" step="0.1" required placeholder="kg">
-                                </div>
-                                <div class="form-group">
-                                    <label>Peso muerto *</label>
-                                    <input type="number" id="entry_peso_muerto" step="0.1" required placeholder="kg">
-                                </div>
-                            </div>
-                            <button type="submit" class="btn-submit soft">Agregar atleta</button>
-                        </form>
-
-                        <table class="ranking-table" id="competition-entries-table">
-                            <thead>
-                                <tr>
-                                    <th>Atleta</th>
-                                    <th>Sentadilla</th>
-                                    <th>Press Banca</th>
-                                    <th>Peso Muerto</th>
-                                    <th>Total</th>
-                                    <th>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-
-                        <div class="competition-builder-actions" data-admin-only>
-                            <button type="button" class="btn-submit" onclick="submitCompetitionWithEntries()">Guardar competencia</button>
-                        </div>
-
-                        <div id="competition-builder-result" class="competition-builder-result"></div>
-                    </div>
-                </div>
-            </section>
 
         <section id="resultados" class="tab-content">
             <div class="section-header">
@@ -318,20 +213,6 @@
             </div>
             <div id="teams-container" class="cards-grid"></div>
             <div id="team-detail" class="competition-detail"></div>
-            <div id="team-admin" class="form-container">
-                <h3>Agregar equipo (admin)</h3>
-                <form id="form-equipo" onsubmit="addEquipo(event)">
-                    <div class="form-group">
-                        <label>Nombre *</label>
-                        <input type="text" id="equipo_nombre" required placeholder="Nombre del equipo">
-                    </div>
-                    <div class="form-group">
-                        <label>Descripción</label>
-                        <textarea id="equipo_descripcion" rows="3" placeholder="Descripción del equipo"></textarea>
-                    </div>
-                    <button type="submit" class="btn-submit">Crear equipo</button>
-                </form>
-            </div>
         </section>
 
         <section id="calendario" class="tab-content">

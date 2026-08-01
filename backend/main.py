@@ -6,7 +6,7 @@ from datetime import datetime
 import os
 import shutil
 
-from database import engine, Base, get_db
+from database import engine, Base, get_db, get_database_info
 from models import Concursante, Competicion, Levantamiento, Club
 from schemas import (
     Concursante as ConcursanteSchema,
@@ -199,7 +199,7 @@ def get_equipos(db: Session = Depends(get_db)):
             "id": e.id,
             "nombre": e.nombre,
             "descripcion": e.descripcion,
-            "miembros_count": len(e.miembros)
+            "miembros_count": len(e.concursantes)
         })
     return result
 
@@ -220,7 +220,7 @@ def get_equipo(equipo_id: int, db: Session = Depends(get_db)):
                 "categoria_peso": m.categoria_peso,
                 "sexo": m.sexo,
                 "photo_url": m.photo_url
-            } for m in db_equipo.miembros
+            } for m in db_equipo.concursantes
         ]
     }
 
@@ -230,7 +230,7 @@ def get_equipo_atletas(equipo_id: int, db: Session = Depends(get_db)):
     db_equipo = db.query(Club).filter(Club.id == equipo_id).first()
     if not db_equipo:
         raise HTTPException(status_code=404, detail="Equipo no encontrado")
-    return db_equipo.miembros
+    return db_equipo.concursantes
 
 
 @app.get("/api/equipos/{equipo_id}/competiciones")
@@ -240,7 +240,7 @@ def get_competiciones_equipo(equipo_id: int, db: Session = Depends(get_db)):
     if not db_equipo:
         raise HTTPException(status_code=404, detail="Equipo no encontrado")
 
-    miembro_ids = [m.id for m in db_equipo.miembros]
+    miembro_ids = [m.id for m in db_equipo.concursantes]
     compet_ids = db.query(Levantamiento.competicion_id).filter(
         Levantamiento.concursante_id.in_(miembro_ids),
         Levantamiento.competicion_id.isnot(None)
@@ -571,6 +571,12 @@ def get_estadisticas(db: Session = Depends(get_db)):
 def read_root():
     """Health check"""
     return {"message": "Powerlifting API - Hermandad Cubana", "status": "online"}
+
+
+@app.get("/api/health/db")
+def health_db():
+    """Diagnostico no sensible de conexion a BD para validar persistencia en despliegue."""
+    return get_database_info()
 
 if __name__ == "__main__":
     import uvicorn

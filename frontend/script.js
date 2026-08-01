@@ -249,7 +249,13 @@ function switchTab(tabName) {
     });
     
     // Mostrar tab activo
-    document.getElementById(tabName).classList.add('active');
+    const targetTab = document.getElementById(tabName);
+    if (!targetTab) {
+        showToast('Esta seccion no esta disponible en esta version.', 'info');
+        document.getElementById('dashboard').classList.add('active');
+        return;
+    }
+    targetTab.classList.add('active');
     
     // Marcar botón como activo (si fue llamado desde un evento)
     try {
@@ -508,12 +514,6 @@ function populateCompetitionEntryConcursanteSelect() {
     });
 
     if (currentValue) select.value = currentValue;
-}
-
-function toggleCompetitionEntriesSection() {
-    const section = document.getElementById('competition-entries-section');
-    if (!section) return;
-    section.classList.toggle('hidden');
 }
 
 function addCompetitionEntry(event) {
@@ -883,8 +883,6 @@ async function submitCompetitionWithEntries(event) {
     }
 }
 
-// ==================== EQUIPOS ====================
-
 async function loadTeams() {
     try {
         const resp = await fetch(`${API_URL}/equipos`);
@@ -906,11 +904,6 @@ async function loadTeams() {
             container.appendChild(card);
         });
 
-        // Mostrar admin form si tiene ADMIN_KEY
-        if (ADMIN_KEY) {
-            const adminBox = document.getElementById('team-admin');
-            if (adminBox) adminBox.style.display = 'block';
-        }
     } catch (err) { console.error('Error cargando equipos', err); }
 }
 
@@ -946,30 +939,6 @@ async function viewTeam(equipoId) {
         `;
         switchTab('equipos');
     } catch (err) { console.error(err); showToast('Error cargando equipo', 'error'); }
-}
-
-async function addEquipo(event) {
-    event.preventDefault();
-    const nombre = document.getElementById('equipo_nombre').value.trim();
-    const descripcion = document.getElementById('equipo_descripcion').value.trim();
-    if (!nombre) { showToast('Nombre requerido', 'error'); return; }
-
-    try {
-        const headers = { 'Content-Type': 'application/json' };
-        if (ADMIN_KEY) headers['x-admin-key'] = ADMIN_KEY;
-        const resp = await fetch(`${API_URL}/equipos`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({ nombre, descripcion })
-        });
-        if (!resp.ok) {
-            const err = await resp.json();
-            throw new Error(err.detail || 'Error creando equipo');
-        }
-        showToast('Equipo creado', 'success');
-        document.getElementById('form-equipo').reset();
-        await loadTeams();
-    } catch (err) { console.error(err); showToast(err.message || 'Error', 'error'); }
 }
 
 function filterByCompetition() {
