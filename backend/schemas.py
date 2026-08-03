@@ -14,9 +14,9 @@ class LevantamientoCreate(LevantamientoBase):
 
 class Levantamiento(LevantamientoBase):
     id: int
-    sentadilla: float
-    press_banca: float
-    peso_muerto: float
+    sentadilla: float = 0
+    press_banca: float = 0
+    peso_muerto: float = 0
     ipf_score: float
     fecha_levantamiento: datetime
 
