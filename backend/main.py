@@ -1,10 +1,11 @@
+from datetime import datetime
+import os
+import shutil
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
-from datetime import datetime
-import os
-import shutil
+
 
 from database import engine, Base, get_db, get_database_info
 from models import Concursante, Competicion, Levantamiento, Club
@@ -106,7 +107,7 @@ def get_concursantes(db: Session = Depends(get_db)):
     return db.query(Concursante).all()
 
 @app.post("/api/concursantes", response_model=ConcursanteSchema)
-def create_concursante(concursante: ConcursanteCreate, db: Session = Depends(get_db), request: Request = None):
+def create_concursante(concursante: ConcursanteCreate, request: Request,db: Session = Depends(get_db)):
     """Crear un nuevo concursante"""
     payload = concursante.model_dump() if hasattr(concursante, "model_dump") else concursante.dict()
 
@@ -158,28 +159,6 @@ def create_concursante(concursante: ConcursanteCreate, db: Session = Depends(get
     return new_concursante
 
 
-@app.post("/api/concursantes/{concursante_id}/photo")
-def upload_concursante_photo(concursante_id: int, file: UploadFile = File(...), db: Session = Depends(get_db), request: Request = None):
-    """Subir foto tipo carnet para un concursante"""
-    if ADMIN_KEY:
-        check_admin(request)
-    db_concursante = db.query(Concursante).filter(Concursante.id == concursante_id).first()
-    if not db_concursante:
-        raise HTTPException(status_code=404, detail="Concursante no encontrado")
-
-    filename = f"conc_{concursante_id}_{int(datetime.utcnow().timestamp())}_{file.filename}"
-    safe_path = os.path.join(PHOTOS_DIR, filename)
-    try:
-        with open(safe_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-    finally:
-        file.file.close()
-
-    db_concursante.photo_filename = filename
-    db.add(db_concursante)
-    db.commit()
-    db.refresh(db_concursante)
-    return {"message": "Foto subida", "photo_url": db_concursante.photo_url}
 
 @app.get("/api/concursantes/{concursante_id}")
 def get_concursante(concursante_id: int, db: Session = Depends(get_db)):
@@ -195,8 +174,8 @@ def get_concursante(concursante_id: int, db: Session = Depends(get_db)):
 def update_concursante(
     concursante_id: int,
     concursante: ConcursanteCreate,
-    db: Session = Depends(get_db),
-    request: Request = None
+    request: Request,
+    db: Session = Depends(get_db)
 ):
     """Actualizar concursante"""
     if ADMIN_KEY:
@@ -248,7 +227,7 @@ def update_concursante(
     return db_concursante
 
 @app.delete("/api/concursantes/{concursante_id}")
-def delete_concursante(concursante_id: int, db: Session = Depends(get_db), request: Request = None):
+def delete_concursante(concursante_id: int, request: Request,db: Session = Depends(get_db)):
     """Eliminar concursante"""
     if ADMIN_KEY:
         check_admin(request)
@@ -282,7 +261,7 @@ def get_competiciones(
     return historial
 
 @app.post("/api/competiciones", response_model=CompeticionSchema)
-def create_competicion(competicion: CompeticionCreate, db: Session = Depends(get_db), request: Request = None):
+def create_competicion(competicion: CompeticionCreate, request: Request,db: Session = Depends(get_db)):
     """Crear una nueva competición (admin only)."""
     if ADMIN_KEY:
         check_admin(request)
@@ -370,7 +349,7 @@ def get_competiciones_equipo(equipo_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/api/equipos")
-def create_equipo(equipo: dict, db: Session = Depends(get_db), request: Request = None):
+def create_equipo(equipo: dict, request: Request,db: Session = Depends(get_db)):
     """Crear un equipo (admin only)."""
     if ADMIN_KEY:
         check_admin(request)
@@ -476,7 +455,7 @@ def get_levantamientos(db: Session = Depends(get_db)):
     return db.query(Levantamiento).all()
 
 @app.post("/api/levantamientos", response_model=LevantamientoSchema)
-def create_levantamiento(levantamiento: LevantamientoCreate, db: Session = Depends(get_db), request: Request = None):
+def create_levantamiento(levantamiento: LevantamientoCreate, request: Request,db: Session = Depends(get_db)):
     """Crear un nuevo levantamiento y calcular IPF"""
     if ADMIN_KEY:
         check_admin(request)
@@ -521,7 +500,7 @@ def create_levantamiento(levantamiento: LevantamientoCreate, db: Session = Depen
 
 
 @app.put("/api/levantamientos/{levantamiento_id}", response_model=LevantamientoSchema)
-def update_levantamiento(levantamiento_id: int, levantamiento: LevantamientoCreate, db: Session = Depends(get_db), request: Request = None):
+def update_levantamiento(levantamiento_id: int, levantamiento: LevantamientoCreate, request: Request,db: Session = Depends(get_db)):
     """Actualizar un levantamiento"""
     if ADMIN_KEY:
         check_admin(request)
@@ -565,7 +544,7 @@ def update_levantamiento(levantamiento_id: int, levantamiento: LevantamientoCrea
     return db_levantamiento
 
 @app.delete("/api/levantamientos/{levantamiento_id}")
-def delete_levantamiento(levantamiento_id: int, db: Session = Depends(get_db), request: Request = None):
+def delete_levantamiento(levantamiento_id: int, request: Request,db: Session = Depends(get_db)):
     """Eliminar un levantamiento"""
     if ADMIN_KEY:
         check_admin(request)
