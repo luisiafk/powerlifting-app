@@ -18,6 +18,7 @@ from schemas import (
 )
 from ipf_calculator import calculate_ipf_points
 from fastapi import Request
+from typing import Any
 
 # Crear tablas
 Base.metadata.create_all(bind=engine)
@@ -81,6 +82,22 @@ def resolve_team_id(db: Session, team_name: str | None):
     db.flush()
     return new_team.id
 
+
+def wipe_database(db: Session) -> dict:
+    """Borra todos los registros de la base de datos manteniendo el esquema."""
+    levantamientos_deleted = db.query(Levantamiento).delete(synchronize_session=False)
+    concursantes_deleted = db.query(Concursante).delete(synchronize_session=False)
+    competiciones_deleted = db.query(Competicion).delete(synchronize_session=False)
+    clubs_deleted = db.query(Club).delete(synchronize_session=False)
+    db.commit()
+
+    return {
+        "levantamientos_deleted": levantamientos_deleted,
+        "concursantes_deleted": concursantes_deleted,
+        "competiciones_deleted": competiciones_deleted,
+        "clubs_deleted": clubs_deleted,
+    }
+
 # ==================== RUTAS CONCURSANTES ====================
 
 @app.get("/api/concursantes")
@@ -120,8 +137,8 @@ def create_concursante(concursante: ConcursanteCreate, db: Session = Depends(get
     if birth_year:
         try:
             edad = datetime.utcnow().year - int(birth_year)
-        except (TypeError, ValueError):
-            raise HTTPException(status_code=400, detail="Año de nacimiento inválido")
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=400, detail="Año de nacimiento inválido") from exc
 
     payload.update({
         "nombre": nombre,
@@ -176,8 +193,8 @@ def get_concursante(concursante_id: int, db: Session = Depends(get_db)):
 
 @app.put("/api/concursantes/{concursante_id}", response_model=ConcursanteSchema)
 def update_concursante(
-    concursante_id: int, 
-    concursante: ConcursanteCreate, 
+    concursante_id: int,
+    concursante: ConcursanteCreate,
     db: Session = Depends(get_db),
     request: Request = None
 ):
@@ -209,18 +226,23 @@ def update_concursante(
     if birth_year:
         try:
             edad = datetime.utcnow().year - int(birth_year)
-        except (TypeError, ValueError):
-            raise HTTPException(status_code=400, detail="Año de nacimiento inválido")
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=400, detail="Año de nacimiento inválido") from exc
 
-    db_concursante.nombre = nombre
-    db_concursante.peso_corporal = peso_corporal
-    db_concursante.sexo = sexo
-    db_concursante.categoria_peso = calculate_categoria_peso(peso_corporal)
-    db_concursante.edad = edad if edad is not None else db_concursante.edad
-    db_concursante.club = team_name or None
-    db_concursante.team_id = team_id
-    db_concursante.ano_inicio = int(birth_year) if birth_year is not None and str(birth_year).strip() != "" else None
-    
+    setattr(db_concursante, "nombre", nombre)
+    setattr(db_concursante, "peso_corporal", peso_corporal)
+    setattr(db_concursante, "sexo", sexo)
+    setattr(db_concursante, "categoria_peso", calculate_categoria_peso(peso_corporal))
+    if edad is not None:
+        setattr(db_concursante, "edad", edad)
+    setattr(db_concursante, "club", team_name or None)
+    setattr(db_concursante, "team_id", team_id)
+    setattr(
+        db_concursante,
+        "ano_inicio",
+        int(birth_year) if birth_year is not None and str(birth_year).strip() != "" else None,
+    )
+
     db.commit()
     db.refresh(db_concursante)
     return db_concursante
@@ -235,7 +257,7 @@ def delete_concursante(concursante_id: int, db: Session = Depends(get_db), reque
     ).first()
     if not db_concursante:
         raise HTTPException(status_code=404, detail="Concursante no encontrado")
-    
+
     db.delete(db_concursante)
     db.commit()
     return {"message": "Concursante eliminado"}
@@ -253,10 +275,10 @@ def get_competiciones(
     historial = [
         competicion
         for competicion in competiciones
-        if competicion.fecha and competicion.fecha.year >= desde
+        if competicion.fecha is not None and competicion.fecha.year >= desde
     ]
 
-    historial.sort(key=lambda competicion: competicion.fecha or datetime.min, reverse=True)
+    historial.sort(key=lambda competicion: competicion.fecha if competicion.fecha is not None else datetime.min, reverse=True)
     return historial
 
 @app.post("/api/competiciones", response_model=CompeticionSchema)
@@ -339,7 +361,7 @@ def get_competiciones_equipo(equipo_id: int, db: Session = Depends(get_db)):
         {
             'id': c.id,
             'nombre': c.nombre,
-            'fecha': c.fecha.isoformat() if c.fecha else None,
+            'fecha': c.fecha.isoformat() if c.fecha is not None else None,
             'ubicacion': c.ubicacion,
             'descripcion': c.descripcion
         } for c in competiciones
@@ -417,7 +439,7 @@ def get_competicion(competicion_id: int, db: Session = Depends(get_db)):
                 "photo_url": l.concursante.photo_url,
                 "team": l.concursante.team.nombre if l.concursante.team else None
             },
-            
+
             "sentadilla": l.sentadilla,
             "press_banca": l.press_banca,
             "peso_muerto": l.peso_muerto,
@@ -437,7 +459,7 @@ def get_competicion(competicion_id: int, db: Session = Depends(get_db)):
     return {
         "id": db_competicion.id,
         "nombre": db_competicion.nombre,
-        "fecha": db_competicion.fecha.isoformat() if db_competicion.fecha else None,
+        "fecha": db_competicion.fecha.isoformat() if db_competicion.fecha is not None else None,
         "ubicacion": db_competicion.ubicacion,
         "levantamientos": levantamientos,
         "atletas": atletas_ordenados,
@@ -530,12 +552,12 @@ def update_levantamiento(levantamiento_id: int, levantamiento: LevantamientoCrea
     total = sentadilla_best + press_banca_best + peso_muerto_best
     ipf_score = calculate_ipf_points(total, db_concursante.categoria_peso, db_concursante.sexo)
 
-    db_levantamiento.concursante_id = levantamiento.concursante_id
-    db_levantamiento.competicion_id = levantamiento.competicion_id
-    db_levantamiento.sentadilla = sentadilla_best
-    db_levantamiento.press_banca = press_banca_best
-    db_levantamiento.peso_muerto = peso_muerto_best
-    db_levantamiento.ipf_score = ipf_score
+    setattr(db_levantamiento, "concursante_id", levantamiento.concursante_id)
+    setattr(db_levantamiento, "competicion_id", levantamiento.competicion_id)
+    setattr(db_levantamiento, "sentadilla", sentadilla_best)
+    setattr(db_levantamiento, "press_banca", press_banca_best)
+    setattr(db_levantamiento, "peso_muerto", peso_muerto_best)
+    setattr(db_levantamiento, "ipf_score", ipf_score)
 
     db.add(db_levantamiento)
     db.commit()
@@ -547,13 +569,13 @@ def delete_levantamiento(levantamiento_id: int, db: Session = Depends(get_db), r
     """Eliminar un levantamiento"""
     if ADMIN_KEY:
         check_admin(request)
-    
+
     db_levantamiento = db.query(Levantamiento).filter(
         Levantamiento.id == levantamiento_id
     ).first()
     if not db_levantamiento:
         raise HTTPException(status_code=404, detail="Levantamiento no encontrado")
-    
+
     db.delete(db_levantamiento)
     db.commit()
     return {"message": "Levantamiento eliminado"}
@@ -620,16 +642,21 @@ def get_ranking_categoria(categoria: str, db: Session = Depends(get_db)):
 def get_records(db: Session = Depends(get_db)):
     """Obtener el record absoluto (mejor total) entre todos los levantamientos"""
     levantamientos = db.query(Levantamiento).all()
-    best = None
+    best: dict[str, Any] | None = None
+    best_total = -1.0
     for l in levantamientos:
-        total = (l.sentadilla or 0) + (l.press_banca or 0) + (l.peso_muerto or 0)
-        if best is None or total > best['total']:
+        sentadilla = float(getattr(l, "sentadilla", 0) or 0.0)
+        press_banca = float(getattr(l, "press_banca", 0) or 0.0)
+        peso_muerto = float(getattr(l, "peso_muerto", 0) or 0.0)
+        total = sentadilla + press_banca + peso_muerto
+        if total > best_total:
+            best_total = total
             best = {
                 'concursante': l.concursante.nombre,
                 'categoria_peso': l.concursante.categoria_peso,
-                'sentadilla': l.sentadilla,
-                'press_banca': l.press_banca,
-                'peso_muerto': l.peso_muerto,
+                'sentadilla': sentadilla,
+                'press_banca': press_banca,
+                'peso_muerto': peso_muerto,
                 'total': total,
                 'ipf_score': l.ipf_score,
                 'competicion_id': l.competicion_id
@@ -644,10 +671,10 @@ def get_estadisticas(db: Session = Depends(get_db)):
     total_concursantes = db.query(Concursante).count()
     total_competiciones = db.query(Competicion).count()
     total_levantamientos = db.query(Levantamiento).count()
-    
+
     levantamientos = db.query(Levantamiento).all()
     mejor_ipf = max([l.ipf_score for l in levantamientos], default=0) if levantamientos else 0
-    
+
     return {
         "total_concursantes": total_concursantes,
         "total_competiciones": total_competiciones,
@@ -667,6 +694,16 @@ def read_root():
 def health_db():
     """Diagnostico no sensible de conexion a BD para validar persistencia en despliegue."""
     return get_database_info()
+
+
+@app.post("/api/admin/reset-database")
+def reset_database(request: Request, db: Session = Depends(get_db)):
+    """Vacía la base de datos sin eliminar el esquema. Requiere ADMIN_KEY."""
+    check_admin(request)
+    return {
+        "message": "Base de datos vaciada correctamente",
+        "deleted": wipe_database(db),
+    }
 
 if __name__ == "__main__":
     import uvicorn

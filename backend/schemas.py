@@ -40,7 +40,6 @@ class Concursante(ConcursanteBase):
     id: int
     fecha_registro: datetime
     levantamientos: List[Levantamiento] = []
-    photo_url: Optional[str] = None
     team: Optional[dict] = None
 
     class Config:

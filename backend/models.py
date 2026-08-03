@@ -19,7 +19,6 @@ class Concursante(Base):
     ano_inicio = Column(Integer, nullable=True)
     team_id = Column(Integer, ForeignKey("clubs.id"), nullable=True)
     fecha_registro = Column(DateTime, default=datetime.utcnow)
-    photo_filename = Column(String, nullable=True)
 
     levantamientos = relationship(
         "Levantamiento",
@@ -27,12 +26,6 @@ class Concursante(Base):
         cascade="all, delete-orphan",
     )
     team = relationship("Club", back_populates="concursantes")
-
-    @hybrid_property
-    def photo_url(self):
-        if self.photo_filename:
-            return f"/static/photos/{self.photo_filename}"
-        return None
 
 
 class Competicion(Base):
