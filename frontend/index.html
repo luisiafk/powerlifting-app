@@ -1,456 +1,538 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hermandad Cubana de Powerlifting</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
     <div class="container">
-        <header class="header">
-            <div class="header-content">
-                <p class="eyebrow">Federación oficial</p>
-                <h1>Hermandad Cubana de Powerlifting</h1>
-                <p class="subtitle">Atletas, competiciones, records y comunidad en un solo lugar.</p>
-            </div>
-            <nav class="nav-buttons">
-                <button class="nav-btn active" onclick="switchTab('dashboard')">Inicio</button>
-                <button class="nav-btn" onclick="switchTab('competencias')">Competencias</button>
-                <button class="nav-btn" onclick="switchTab('resultados')">Resultados</button>
-                <button class="nav-btn" onclick="switchTab('records')">Records</button>
-                <button class="nav-btn" onclick="switchTab('ranking')">Rankings</button>
-                <button class="nav-btn" onclick="switchTab('atletas')">Atletas</button>
-                <button class="nav-btn" onclick="switchTab('equipos')">Equipos</button>
-                <button class="nav-btn" onclick="switchTab('calendario')">Calendario</button>
-                <button class="nav-btn" onclick="switchTab('reglamentos')">Reglamentos</button>
-                <button class="nav-btn" onclick="switchTab('afiliacion')">Afiliación</button>
-                <button class="nav-btn" onclick="switchTab('noticias')">Noticias</button>
-                <button class="nav-btn" onclick="switchTab('contacto')">Contacto</button>
-            </nav>
-        </header>
+      <header class="header">
+        <div class="header-content">
+          <p class="eyebrow">Federación oficial</p>
+          <h1>Hermandad Cubana de Powerlifting</h1>
+          <p class="subtitle">
+            Atletas, competiciones, records y comunidad en un solo lugar.
+          </p>
+        </div>
+        <nav class="nav-buttons">
+          <button class="nav-btn active" onclick="switchTab('dashboard')">
+            Inicio
+          </button>
+          <button class="nav-btn" onclick="switchTab('competencias')">
+            Competencias
+          </button>
+          <button class="nav-btn" onclick="switchTab('records')">
+            Records
+          </button>
+          <button class="nav-btn" onclick="switchTab('ranking')">
+            Rankings
+          </button>
+          <button class="nav-btn" onclick="switchTab('atletas')">
+            Atletas
+          </button>
+          <button class="nav-btn" onclick="switchTab('equipos')">
+            Equipos
+          </button>
+          <button class="nav-btn" onclick="switchTab('calendario')">
+            Calendario
+          </button>
+        </nav>
+      </header>
 
-        <section id="dashboard" class="tab-content active">
-            <div class="hero-card">
-                <div>
-                    <p class="section-kicker">Inicio</p>
-                    <h2>Todo el powerlifting cubano en un solo sitio</h2>
-                    <p>Consulta atletas, resultados, records, rankings y competiciones oficiales con un diseño limpio y claro.</p>
-                </div>
-                <div class="hero-actions">
-                    <button class="btn-submit soft" onclick="switchTab('ranking')">Ver rankings</button>
-                    <button class="btn-submit outline" onclick="switchTab('contacto')">Contactar</button>
-                </div>
-            </div>
+      <section id="dashboard" class="tab-content active">
+        <div class="hero-card">
+          <div>
+            <p class="section-kicker">Inicio</p>
+            <h2>Todo el powerlifting cubano en un solo sitio</h2>
+            <p>
+              Consulta atletas, records, rankings y competiciones oficiales con un diseño limpio y claro.
+            </p>
+          </div>
+          <div class="hero-actions">
+            <button class="btn-submit soft" onclick="switchTab('ranking')">
+              Ver rankings
+            </button>
+            <button class="btn-submit outline" onclick="switchTab('competencias')">
+              Ver competencias
+            </button>
+          </div>
+        </div>
 
-            <section class="admin-panel" data-admin-only>
-                <div class="section-header">
-                    <h2>Panel de administrador</h2>
-                    <p>Accesos rápidos para registrar atletas y competencias.</p>
-                </div>
-                <div class="admin-actions">
-                    <button class="btn-submit soft" type="button" onclick="switchTab('agregar-competencia')">Agregar competencias</button>
-                    <button class="btn-submit" type="button" onclick="switchTab('add-concursante')">Agregar atletas</button>
-                </div>
-            </section>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Concursantes</h3>
-                    <p class="stat-number" id="stat-concursantes">0</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Competiciones</h3>
-                    <p class="stat-number" id="stat-competiciones">0</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Levantamientos</h3>
-                    <p class="stat-number" id="stat-levantamientos">0</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Mejor IPF</h3>
-                    <p class="stat-number" id="stat-mejor-ipf">0</p>
-                </div>
-            </div>
-
-            <div class="grid-two">
-                <div class="panel-card">
-                    <h2>Últimas noticias</h2>
-                    <div class="simple-list" id="home-news">
-                        <article class="list-item">
-                            <h3>Convocatoria nacional abierta</h3>
-                            <p>Se abren las inscripciones para el próximo ciclo competitivo de la Hermandad Cubana de Powerlifting.</p>
-                        </article>
-                        <article class="list-item">
-                            <h3>Actualización de categorías</h3>
-                            <p>Se incorporan las divisiones 105 kg, 120 kg y +120 kg en hombres, y se mantienen las femeninas oficiales.</p>
-                        </article>
-                    </div>
-                </div>
-                <div class="panel-card">
-                    <h2>Top 5 atletas</h2>
-                    <table id="top-performers-table">
-                        <thead>
-                            <tr>
-                                <th>Posición</th>
-                                <th>Nombre</th>
-                                <th>Categoría</th>
-                                <th>Total (kg)</th>
-                                <th>IPF</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
+        <section class="admin-panel" data-admin-only>
+          <div class="section-header">
+            <h2>Panel de administrador</h2>
+            <p>Accesos rápidos para registrar atletas y competencias.</p>
+          </div>
+          <div class="admin-actions">
+            <button
+              class="btn-submit soft"
+              type="button"
+              onclick="switchTab('agregar-competencia')"
+            >
+              Agregar competencias
+            </button>
+            <button
+              class="btn-submit"
+              type="button"
+              onclick="switchTab('add-concursante')"
+            >
+              Agregar atletas
+            </button>
+          </div>
         </section>
 
-        <section id="competencias" class="tab-content">
-            <div class="section-header">
-                <h2>Historial de competencias</h2>
-                <p>Registro cronológico de todas las competencias celebradas desde 2024 hasta la fecha.</p>
-            </div>
-            <div id="competition-history-summary" class="history-summary"></div>
-            <div id="competition-detail" class="competition-detail"></div>
-            <div id="competitions-list" class="cards-grid"></div>
-        </section>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Concursantes</h3>
+            <p class="stat-number" id="stat-concursantes">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Competiciones</h3>
+            <p class="stat-number" id="stat-competiciones">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Levantamientos</h3>
+            <p class="stat-number" id="stat-levantamientos">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Mejor IPF</h3>
+            <p class="stat-number" id="stat-mejor-ipf">0</p>
+          </div>
+        </div>
 
-        <section id="agregar-competencia" class="tab-content" data-admin-only>
-            <div class="section-header">
-                <h2>Agregar competencia</h2>
-                <p>Registra una competencia y agrega sus atletas con levantamientos.</p>
-            </div>
-            <div class="form-container">
-                <form id="form-competicion" onsubmit="event.preventDefault()">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Nombre *</label>
-                            <input type="text" id="competicion_nombre" required placeholder="Nombre de la competencia">
-                        </div>
-                        <div class="form-group">
-                            <label>Fecha *</label>
-                            <input type="date" id="competicion_fecha" required title="Fecha de la competencia">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Sede *</label>
-                            <input type="text" id="competicion_ubicacion" required placeholder="Sede de la competencia">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Descripción</label>
-                        <textarea id="competicion_descripcion" rows="4" placeholder="Detalles del evento"></textarea>
-                    </div>
-                </form>
+        <div class="section-header">
+          <h2>Información general</h2>
+          <p>Todo lo que antes estaba separado ahora vive aquí, junto con el acceso directo a competencias.</p>
+        </div>
 
-                <div class="competition-entries">
-                    <h3>Atletas y levantamientos</h3>
-                    <form id="form-competition-entry" onsubmit="addCompetitionEntry(event)">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Atleta *</label>
-                                <select id="entry_concursante_id" required title="Selecciona el atleta"></select>
-                            </div>
-                            <div class="form-group">
-                                <label>Sentadilla *</label>
-                                <input type="number" id="entry_sentadilla" step="0.1" required placeholder="kg">
-                            </div>
-                            <div class="form-group">
-                                <label>Press banca *</label>
-                                <input type="number" id="entry_press_banca" step="0.1" required placeholder="kg">
-                            </div>
-                            <div class="form-group">
-                                <label>Peso muerto *</label>
-                                <input type="number" id="entry_peso_muerto" step="0.1" required placeholder="kg">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-submit soft">Agregar atleta</button>
-                    </form>
+        <div class="cards-grid">
+          <article class="info-card">
+            <h3>Reglamentos</h3>
+            <ul class="rule-list">
+              <li>El atleta debe estar afiliado al club o equipo correspondiente.</li>
+              <li>Los intentos se registran en sentadilla, press banca y peso muerto.</li>
+              <li>La categoría de peso debe coincidir con el pesaje oficial.</li>
+              <li>Se respeta la técnica validada por los jueces del evento.</li>
+              <li>Los records solo se validan con levantamientos registrados.</li>
+            </ul>
+          </article>
 
-                    <table class="ranking-table" id="competition-entries-table">
-                        <thead>
-                            <tr>
-                                <th>Atleta</th>
-                                <th>Equipo</th>
-                                <th>Peso actual</th>
-                                <th>Sentadilla</th>
-                                <th>Press Banca</th>
-                                <th>Peso Muerto</th>
-                                <th>Total</th>
-                                <th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+          <article class="info-card">
+            <h3>Afiliación</h3>
+            <ol class="rule-list numbered">
+              <li>Completa tus datos de atleta.</li>
+              <li>Entrega tu foto tipo carnet y documentos básicos.</li>
+              <li>Asóciate a un equipo o club.</li>
+              <li>Inscríbete en el calendario competitivo.</li>
+            </ol>
+          </article>
 
-                    <div class="competition-builder-actions" data-admin-only>
-                        <button type="button" class="btn-submit" onclick="submitCompetitionWithEntries()">Guardar competencia</button>
-                    </div>
+          <article class="info-card">
+            <h3>Noticias</h3>
+            <p><strong>Convocatoria:</strong> Nuevo ciclo competitivo con inscripciones abiertas y revisión de categorías.</p>
+            <p><strong>Comunidad:</strong> Los equipos y clubes pueden registrar atletas y eventos con mayor facilidad.</p>
+          </article>
 
-                    <div id="competition-builder-result" class="competition-builder-result"></div>
-                </div>
-            </div>
-        </section>
+          <article class="info-card">
+            <h3>Contacto</h3>
+            <p><strong>Correo:</strong> No disponible</p>
+            <p><strong>WhatsApp:</strong> +53 55584451</p>
+            <p><strong>Sede:</strong> La Habana, Cuba</p>
+          </article>
+        </div>
 
-        <section id="resultados" class="tab-content">
-            <div class="section-header">
-                <h2>Resultados</h2>
-                <p>Resultados generales ordenados por desempeño.</p>
-            </div>
-            <table class="ranking-table" id="results-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Nombre</th>
-                        <th>Categoría</th>
-                        <th>Sentadilla</th>
-                        <th>Press Banca</th>
-                        <th>Peso Muerto</th>
-                        <th>Total</th>
-                        <th>IPF</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
+        <div class="grid-two">
+          <div class="panel-card">
+            <h2>Top 5 atletas</h2>
+            <table id="top-performers-table">
+              <thead>
+                <tr>
+                  <th>Posición</th>
+                  <th>Nombre</th>
+                  <th>Categoría</th>
+                  <th>Total (kg)</th>
+                  <th>IPF</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
             </table>
-        </section>
+          </div>
+          <div class="panel-card">
+            <h2>Resultados por competencia</h2>
+            <p>Los resultados oficiales se consultan dentro de cada competencia en la pestaña Competencias.</p>
+            <p>Ahí verás el detalle, el podio, los top levantamientos y los records vigentes de cada evento.</p>
+          </div>
+        </div>
+      </section>
 
-        <section id="records" class="tab-content">
-            <div class="section-header">
-                <h2>Records</h2>
-                <p>Mejores marcas nacionales por categoría de peso.</p>
+      <section id="competencias" class="tab-content">
+        <div class="section-header">
+          <h2>Historial de competencias</h2>
+          <p>
+            Registro cronológico de todas las competencias celebradas desde 2024
+            hasta la fecha.
+          </p>
+        </div>
+        <div id="competition-history-summary" class="history-summary"></div>
+        <div id="competition-detail" class="competition-detail"></div>
+        <div id="competitions-list" class="cards-grid"></div>
+      </section>
+
+      <section id="agregar-competencia" class="tab-content" data-admin-only>
+        <div class="section-header">
+          <h2>Agregar competencia</h2>
+          <p>
+            Registra una competencia y agrega sus atletas con levantamientos.
+          </p>
+        </div>
+        <div class="form-container">
+          <form id="form-competicion" onsubmit="event.preventDefault()">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nombre *</label>
+                <input
+                  type="text"
+                  id="competicion_nombre"
+                  required
+                  placeholder="Nombre de la competencia"
+                />
+              </div>
+              <div class="form-group">
+                <label>Fecha *</label>
+                <input
+                  type="date"
+                  id="competicion_fecha"
+                  required
+                  title="Fecha de la competencia"
+                />
+              </div>
             </div>
-            <table class="ranking-table" id="records-table">
-                <thead>
-                    <tr>
-                        <th>Categoría</th>
-                        <th>Atleta</th>
-                        <th>Sentadilla</th>
-                        <th>Press Banca</th>
-                        <th>Peso Muerto</th>
-                        <th>Total</th>
-                        <th>IPF</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Sede *</label>
+                <input
+                  type="text"
+                  id="competicion_ubicacion"
+                  required
+                  placeholder="Sede de la competencia"
+                />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Descripción</label>
+              <textarea
+                id="competicion_descripcion"
+                rows="4"
+                placeholder="Detalles del evento"
+              ></textarea>
+            </div>
+          </form>
+
+          <div class="competition-entries">
+            <h3>Atletas y levantamientos</h3>
+            <form
+              id="form-competition-entry"
+              onsubmit="addCompetitionEntry(event)"
+            >
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Atleta *</label>
+                  <select
+                    id="entry_concursante_id"
+                    required
+                    title="Selecciona el atleta"
+                  ></select>
+                </div>
+                <div class="form-group">
+                  <label>Sentadilla *</label>
+                  <input
+                    type="number"
+                    id="entry_sentadilla"
+                    step="0.1"
+                    required
+                    placeholder="kg"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Press banca *</label>
+                  <input
+                    type="number"
+                    id="entry_press_banca"
+                    step="0.1"
+                    required
+                    placeholder="kg"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Peso muerto *</label>
+                  <input
+                    type="number"
+                    id="entry_peso_muerto"
+                    step="0.1"
+                    required
+                    placeholder="kg"
+                  />
+                </div>
+              </div>
+              <button type="submit" class="btn-submit soft">
+                Agregar atleta
+              </button>
+            </form>
+
+            <table class="ranking-table" id="competition-entries-table">
+              <thead>
+                <tr>
+                  <th>Atleta</th>
+                  <th>Equipo</th>
+                  <th>Peso actual</th>
+                  <th>Sentadilla</th>
+                  <th>Press Banca</th>
+                  <th>Peso Muerto</th>
+                  <th>Total</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
             </table>
-        </section>
 
-        <section id="ranking" class="tab-content">
-            <div class="section-header">
-                <h2>Rankings</h2>
-                <p>Filtra por peso, competición, total o IPF.</p>
+            <div class="competition-builder-actions" data-admin-only>
+              <button
+                type="button"
+                class="btn-submit"
+                onclick="submitCompetitionWithEntries()"
+              >
+                Guardar competencia
+              </button>
             </div>
-            <div class="ranking-filters">
-                <button class="filter-btn active" onclick="filterRanking('all')">Todos</button>
-                <button class="filter-btn" onclick="filterRanking('59')">59 kg</button>
-                <button class="filter-btn" onclick="filterRanking('66')">66 kg</button>
-                <button class="filter-btn" onclick="filterRanking('74')">74 kg</button>
-                <button class="filter-btn" onclick="filterRanking('83')">83 kg</button>
-                <button class="filter-btn" onclick="filterRanking('93')">93 kg</button>
-                <button class="filter-btn" onclick="filterRanking('105')">105 kg</button>
-                <button class="filter-btn" onclick="filterRanking('120')">120 kg</button>
-                <button class="filter-btn" onclick="filterRanking('+120')">+120 kg</button>
+
+            <div
+              id="competition-builder-result"
+              class="competition-builder-result"
+            ></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="records" class="tab-content">
+        <div class="section-header">
+          <h2>Records</h2>
+          <p>Mejores marcas nacionales por categoría de peso.</p>
+        </div>
+        <table class="ranking-table" id="records-table">
+          <thead>
+            <tr>
+              <th>Categoría</th>
+              <th>Atleta</th>
+              <th>Sentadilla</th>
+              <th>Press Banca</th>
+              <th>Peso Muerto</th>
+              <th>Total</th>
+              <th>IPF</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section id="ranking" class="tab-content">
+        <div class="section-header">
+          <h2>Rankings</h2>
+          <p>Filtra por peso, competición, total o IPF.</p>
+        </div>
+        <div class="ranking-filters">
+          <button class="filter-btn active" onclick="filterRanking('all')">
+            Todos
+          </button>
+          <button class="filter-btn" onclick="filterRanking('59')">
+            59 kg
+          </button>
+          <button class="filter-btn" onclick="filterRanking('66')">
+            66 kg
+          </button>
+          <button class="filter-btn" onclick="filterRanking('74')">
+            74 kg
+          </button>
+          <button class="filter-btn" onclick="filterRanking('83')">
+            83 kg
+          </button>
+          <button class="filter-btn" onclick="filterRanking('93')">
+            93 kg
+          </button>
+          <button class="filter-btn" onclick="filterRanking('105')">
+            105 kg
+          </button>
+          <button class="filter-btn" onclick="filterRanking('120')">
+            120 kg
+          </button>
+          <button class="filter-btn" onclick="filterRanking('+120')">
+            +120 kg
+          </button>
+        </div>
+        <div class="ranking-controls">
+          <label for="competition-filter">Competición:</label>
+          <select id="competition-filter" onchange="filterByCompetition()">
+            <option value="all">Todas</option>
+          </select>
+          <label for="sort-filter">Ordenar por:</label>
+          <select id="sort-filter" onchange="applySort()">
+            <option value="ipf">IPF Score</option>
+            <option value="total">Total (kg)</option>
+          </select>
+          <button
+            class="filter-btn"
+            onclick="
+              switchTab('records');
+              loadRecords();
+            "
+          >
+            Ver Records
+          </button>
+        </div>
+        <table class="ranking-table" id="ranking-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nombre</th>
+              <th>Sexo</th>
+              <th>Categoría</th>
+              <th>Sentadilla</th>
+              <th>Press Banca</th>
+              <th>Peso Muerto</th>
+              <th>Total</th>
+              <th>IPF Score</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section id="atletas" class="tab-content">
+        <div class="section-header">
+          <h2>Atletas</h2>
+          <p>
+            Directorio de concursantes con foto tipo carnet y datos completos.
+          </p>
+        </div>
+        <div class="search-bar">
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Buscar por nombre..."
+            onkeyup="filterConcursantes()"
+          />
+        </div>
+        <div id="concursantes-grid" class="concursantes-grid"></div>
+      </section>
+
+      <section id="equipos" class="tab-content">
+        <div class="section-header">
+          <h2>Equipos</h2>
+          <p>
+            Clubes y delegaciones vinculadas a la Hermandad Cubana de
+            Powerlifting.
+          </p>
+        </div>
+        <div id="teams-container" class="cards-grid"></div>
+        <div id="team-detail" class="competition-detail"></div>
+      </section>
+
+      <section id="calendario" class="tab-content">
+        <div class="section-header">
+          <h2>Calendario</h2>
+          <p>Fechas estimadas para eventos, concentrados y campeonatos.</p>
+        </div>
+        <div class="cards-grid">
+          <article class="info-card">
+            <h3>Marzo</h3>
+            <p>Convocatoria de inscripción y revisión técnica.</p>
+          </article>
+          <article class="info-card">
+            <h3>Junio</h3>
+            <p>Campeonato nacional clasificatorio.</p>
+          </article>
+          <article class="info-card">
+            <h3>Octubre</h3>
+            <p>Final nacional y actualización de records oficiales.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="add-concursante" class="tab-content" data-admin-only>
+        <div class="form-container" data-admin-only>
+          <h2>Registrar Nuevo Concursante</h2>
+          <form id="form-concursante" onsubmit="addConcursante(event)">
+            <div class="form-group">
+              <label>Nombre *</label>
+              <input
+                type="text"
+                id="nombre"
+                required
+                placeholder="Nombre completo"
+                title="Nombre completo"
+              />
             </div>
-            <div class="ranking-controls">
-                <label for="competition-filter">Competición:</label>
-                <select id="competition-filter" onchange="filterByCompetition()">
-                    <option value="all">Todas</option>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Peso Corporal (kg) *</label>
+                <input
+                  type="number"
+                  id="peso_corporal"
+                  step="0.1"
+                  required
+                  placeholder="Peso corporal"
+                  title="Peso corporal"
+                />
+              </div>
+              <div class="form-group">
+                <label>Sexo *</label>
+                <select
+                  id="sexo"
+                  required
+                  title="Sexo del atleta"
+                  aria-label="Sexo del atleta"
+                >
+                  <option>M</option>
+                  <option>F</option>
                 </select>
-                <label for="sort-filter">Ordenar por:</label>
-                <select id="sort-filter" onchange="applySort()">
-                    <option value="ipf">IPF Score</option>
-                    <option value="total">Total (kg)</option>
-                </select>
-                <button class="filter-btn" onclick="switchTab('records'); loadRecords()">Ver Records</button>
+              </div>
             </div>
-            <table class="ranking-table" id="ranking-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Nombre</th>
-                        <th>Sexo</th>
-                        <th>Categoría</th>
-                        <th>Sentadilla</th>
-                        <th>Press Banca</th>
-                        <th>Peso Muerto</th>
-                        <th>Total</th>
-                        <th>IPF Score</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </section>
-
-        <section id="atletas" class="tab-content">
-            <div class="section-header">
-                <h2>Atletas</h2>
-                <p>Directorio de concursantes con foto tipo carnet y datos completos.</p>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Equipo</label>
+                <input
+                  type="text"
+                  id="club"
+                  placeholder="Equipo o club"
+                  title="Equipo"
+                />
+              </div>
+              <div class="form-group">
+                <label>Año de nacimiento</label>
+                <input
+                  type="number"
+                  id="ano_inicio"
+                  placeholder="Año de nacimiento"
+                  title="Año de nacimiento"
+                />
+              </div>
             </div>
-            <div class="search-bar">
-                <input type="text" id="search-input" placeholder="Buscar por nombre..." onkeyup="filterConcursantes()">
-            </div>
-            <div id="concursantes-grid" class="concursantes-grid"></div>
-        </section>
-
-        <section id="equipos" class="tab-content">
-            <div class="section-header">
-                <h2>Equipos</h2>
-                <p>Clubes y delegaciones vinculadas a la Hermandad Cubana de Powerlifting.</p>
-            </div>
-            <div id="teams-container" class="cards-grid"></div>
-            <div id="team-detail" class="competition-detail"></div>
-        </section>
-
-        <section id="calendario" class="tab-content">
-            <div class="section-header">
-                <h2>Calendario</h2>
-                <p>Fechas estimadas para eventos, concentrados y campeonatos.</p>
-            </div>
-            <div class="cards-grid">
-                <article class="info-card">
-                    <h3>Marzo</h3>
-                    <p>Convocatoria de inscripción y revisión técnica.</p>
-                </article>
-                <article class="info-card">
-                    <h3>Junio</h3>
-                    <p>Campeonato nacional clasificatorio.</p>
-                </article>
-                <article class="info-card">
-                    <h3>Octubre</h3>
-                    <p>Final nacional y actualización de records oficiales.</p>
-                </article>
-            </div>
-        </section>
-
-        <section id="reglamentos" class="tab-content">
-            <div class="section-header">
-                <h2>Reglamentos</h2>
-                <p>Normas básicas para competir en la Hermandad Cubana de Powerlifting.</p>
-            </div>
-            <div class="panel-card">
-                <ul class="rule-list">
-                    <li>El atleta debe estar afiliado al club o equipo correspondiente.</li>
-                    <li>Los intentos se registran en sentadilla, press banca y peso muerto.</li>
-                    <li>La categoría de peso debe coincidir con el pesaje oficial.</li>
-                    <li>Se respeta la técnica validada por los jueces del evento.</li>
-                    <li>Los records solo se validan con levantamientos registrados.</li>
-                </ul>
-            </div>
-        </section>
-
-        <section id="afiliacion" class="tab-content">
-            <div class="section-header">
-                <h2>Afiliación</h2>
-                <p>Cómo unirte y comenzar a competir oficialmente.</p>
-            </div>
-            <div class="grid-two">
-                <article class="info-card">
-                    <h3>Pasos para afiliarte</h3>
-                    <ol class="rule-list numbered">
-                        <li>Completa tus datos de atleta.</li>
-                        <li>Entrega tu foto tipo carnet y documentos básicos.</li>
-                        <li>Asóciate a un equipo o club.</li>
-                        <li>Inscríbete en el calendario competitivo.</li>
-                    </ol>
-                </article>
-                <article class="info-card">
-                    <h3>Cómo competir</h3>
-                    <p>Registra tu participación, cumple el pesaje oficial y presenta tus intentos ante la mesa técnica del evento.</p>
-                    
-                </article>
-            </div>
-        </section>
-
-        <section id="noticias" class="tab-content">
-            <div class="section-header">
-                <h2>Noticias</h2>
-                <p>Novedades y anuncios de la comunidad.</p>
-            </div>
-            <div class="cards-grid">
-                <article class="news-card">
-                    <span class="news-tag">Convocatoria</span>
-                    <h3>Nuevo ciclo competitivo</h3>
-                    <p>Se abrirán inscripciones para la próxima temporada con revisión de categorías y records nacionales.</p>
-                </article>
-                <article class="news-card">
-                    <span class="news-tag">Resultados</span>
-                    <h3>Publicación de marcas oficiales</h3>
-                    <p>Los resultados de cada competencia se publicarán automáticamente en esta plataforma.</p>
-                </article>
-                <article class="news-card">
-                    <span class="news-tag">Comunidad</span>
-                    <h3>Mayor presencia de equipos</h3>
-                    <p>Los equipos y clubes podrán registrar sus atletas y eventos con mayor facilidad.</p>
-                </article>
-            </div>
-        </section>
-
-        <section id="contacto" class="tab-content">
-            <div class="section-header">
-                <h2>Contacto</h2>
-                <p>Canales para afiliación, dudas y soporte.</p>
-            </div>
-            <div class="grid-two">
-                <article class="panel-card">
-                    <h3>Datos de contacto</h3>
-                    <p><strong>Correo:</strong> No disponible</p>
-                    <p><strong>WhatsApp:</strong> +53 55584451</p>
-                    <p><strong>Sede:</strong> La Habana, Cuba</p>
-                </article>
-                <article class="panel-card">
-                    <h3>Escríbenos</h3>
-                    <form class="contact-form">
-                        <input type="text" placeholder="Nombre">
-                        <input type="email" placeholder="Correo">
-                        <textarea rows="4" placeholder="Mensaje"></textarea>
-                        <button type="button" class="btn-submit soft">Enviar mensaje</button>
-                    </form>
-                </article>
-            </div>
-        </section>
-
-        <section id="add-concursante" class="tab-content" data-admin-only>
-            <div class="form-container" data-admin-only>
-                <h2>Registrar Nuevo Concursante</h2>
-                <form id="form-concursante" onsubmit="addConcursante(event)">
-                    <div class="form-group">
-                        <label>Nombre *</label>
-                        <input type="text" id="nombre" required placeholder="Nombre completo" title="Nombre completo">
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Peso Corporal (kg) *</label>
-                            <input type="number" id="peso_corporal" step="0.1" required placeholder="Peso corporal" title="Peso corporal">
-                        </div>
-                        <div class="form-group">
-                            <label>Sexo *</label>
-                            <select id="sexo" required title="Sexo del atleta" aria-label="Sexo del atleta">
-                                <option>M</option>
-                                <option>F</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Equipo</label>
-                            <input type="text" id="club" placeholder="Equipo o club" title="Equipo">
-                        </div>
-                        <div class="form-group">
-                            <label>Año de nacimiento</label>
-                            <input type="number" id="ano_inicio" placeholder="Año de nacimiento" title="Año de nacimiento">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-submit">Registrar Concursante</button>
-                </form>
-            </div>
-        </section>
+            <button type="submit" class="btn-submit">
+              Registrar Concursante
+            </button>
+          </form>
+        </div>
+      </section>
     </div>
 
     <footer class="footer">
-        <p>&copy; 2024 Hermandad Cubana de Powerlifting. Todos los derechos reservados.</p>
+      <p>
+        &copy; 2024 Hermandad Cubana de Powerlifting. Todos los derechos
+        reservados.
+      </p>
     </footer>
 
     <script src="script.js"></script>
-</body>
+  </body>
 </html>

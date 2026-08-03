@@ -40,7 +40,6 @@ async function loadAllData() {
     await loadStats();
     await loadTopPerformers();
     await loadCompetitions();
-    await loadResults();
     await loadRecords();
     await loadTeams();
 }
@@ -113,33 +112,6 @@ async function loadTopPerformers() {
     }
 }
 
-async function loadResults() {
-    try {
-        const response = await fetch(`${API_URL}/ranking`);
-        if (!response.ok) throw new Error('Error al cargar resultados');
-        const results = await response.json();
-        const tbody = document.querySelector('#results-table tbody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-        results.slice(0, 10).forEach((item, index) => {
-            const row = `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${item.nombre}</td>
-                    <td>${item.categoria_peso} kg</td>
-                    <td>${item.sentadilla}</td>
-                    <td>${item.press_banca}</td>
-                    <td>${item.peso_muerto}</td>
-                    <td><strong>${item.total}</strong></td>
-                    <td>${item.ipf_score.toFixed(2)}</td>
-                </tr>
-            `;
-            tbody.innerHTML += row;
-        });
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
 
 // ==================== DISPLAY FUNCTIONS ====================
 
@@ -261,8 +233,6 @@ function switchTab(tabName) {
         loadRanking('all');
     } else if (tabName === 'records') {
         loadRecords();
-    } else if (tabName === 'resultados') {
-        loadResults();
     } else if (tabName === 'competencias') {
         loadCompetitions();
     }
