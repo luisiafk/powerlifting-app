@@ -49,7 +49,7 @@ class Club(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, unique=True, index=True, nullable=False)
-    descripcion = Column(String, nullable=True)
+    
 
     concursantes = relationship("Concursante", back_populates="team")
 

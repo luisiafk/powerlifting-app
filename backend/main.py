@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 
-from database import engine, Base, get_db, get_database_info
+from database import engine, Base, get_db
 from models import Concursante, Competicion, Levantamiento, Club
 from schemas import (
     Concursante as ConcursanteSchema,
@@ -484,7 +484,7 @@ def create_levantamiento(levantamiento: LevantamientoCreate, request: Request,db
         db_concursante.sexo
     )
 
-    payload = levantamiento.model_dump() if hasattr(levantamiento, "model_dump") else levantamiento.dict()
+    payload = levantamiento.model_dump() if hasattr(levantamiento, "model_dump") else levantamiento.model_dump()
     payload.update({
         "sentadilla": sentadilla_best,
         "press_banca": press_banca_best,
@@ -668,21 +668,6 @@ def read_root():
     """Health check"""
     return {"message": "Powerlifting API - Hermandad Cubana", "status": "online"}
 
-
-@app.get("/api/health/db")
-def health_db():
-    """Diagnostico no sensible de conexion a BD para validar persistencia en despliegue."""
-    return get_database_info()
-
-
-@app.post("/api/admin/reset-database")
-def reset_database(request: Request, db: Session = Depends(get_db)):
-    """Vacía la base de datos sin eliminar el esquema. Requiere ADMIN_KEY."""
-    check_admin(request)
-    return {
-        "message": "Base de datos vaciada correctamente",
-        "deleted": wipe_database(db),
-    }
 
 if __name__ == "__main__":
     import uvicorn
